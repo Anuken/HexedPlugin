@@ -11,7 +11,7 @@ repositories{
 
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:fe82ca9037028044764cc4b02fdbf851e3d09f78"
-    compileOnly "com.github.Anuken.Mindustry:core:77b89d45d69f811c92d1124a25f3d23563638a54"
+    compileOnly "com.github.Anuken.Mindustry:core:730d30ef9829fb3e54032e694c4af464ce5860b2"
 }
 
 jar{
