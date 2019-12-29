@@ -32,15 +32,16 @@ public class HexedMod extends Plugin{
     public void init(){
         rules.pvp = true;
         rules.tags.put("hexed", "true");
-        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 100, Items.metaglass, 100, Items.silicon, 100);
+        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150);
         rules.buildCostMultiplier = 1f;
-        rules.buildSpeedMultiplier = 0.25f;
+        rules.buildSpeedMultiplier = 1f / 3f;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
         rules.unitDamageMultiplier = 1f;
         rules.playerHealthMultiplier = 2f;
 
-        start = Schematics.readBase64("bXNjaAB4nE2SfW7DIAzFDSR8pP1nB8lJdgqaoalSClHSburtZxPbWqXCL8HvPQOBC1wMDDU/Cgy3fBR8Xtq2lX3+zesKH/8e5jXv3wXi0upPebcdXN4XuBwN389brmWFcCz5+Sw7XJe2l7m+lrW8DvCPUr/wbXzVtWWi6162fEdZu9cnhFtXvQHgE/9gQEbbicZBaVTyWhdAfolnw7ND6uwszuJi1MWwC9WlE5AmjrDsMvRKWiWyXGdp6M5Wna06W3Ym7v25ESnqO8lwmuE0w3GGR7dRdyKKQRXDqbChd0jbjkix759Wk1aKVtwS0qmdYOQ0ot6fo9WkCtF6dfOsjUikNS4gda2hVcn1qpUbGpEMuwROI5KzD6qQkyKSc47n3i3RqORVEdgvqnNU56jO0p1DOk+c7l6+taQZSTMSZ1BdUK04J3WeeG90u+IyqcuknU7cwx8dFTGj");
+        start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+
         Events.on(Trigger.update, () -> {
             if(active()){
                 for(Player player : playerGroup.all()){
@@ -66,7 +67,7 @@ public class HexedMod extends Plugin{
                 int x = Pos.x(lastGenerator.hex.get(i));
                 int y = Pos.y(lastGenerator.hex.get(i));
                 boolean[] synth = {false};
-                Geometry.circle(x, y, 4, (cx, cy) -> {
+                Geometry.circle(x, y, 15, (cx, cy) -> {
                     if(world.tile(x, y).block().synthetic()){
                         synth[0] = true;
                     }
@@ -90,6 +91,7 @@ public class HexedMod extends Plugin{
                         return team;
                     }
                 }
+                Call.onInfoMessage(player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
                 return Team.derelict;
             }else{
                 return prev.assign(player, players);

@@ -16,8 +16,8 @@ import static mindustry.Vars.*;
 
 public class HexedGenerator extends Generator{
     public final static int size = 448;
-    public final static int radius = 70;
-    public final static int spacing = 90;
+    public final static int radius = 74;
+    public final static int spacing = 94;
     public IntArray hex = getHex();
 
     // elevation --->
@@ -89,9 +89,9 @@ public class HexedGenerator extends Generator{
                 }
             });
             Angles.circle(3, 360f / 3 / 2f - 90, f -> {
-                Tmp.v1.trnsExact(f, spacing + 10);
+                Tmp.v1.trnsExact(f, spacing + 12);
                 if(Structs.inBounds(x + (int)Tmp.v1.x, y + (int)Tmp.v1.y, width, height)){
-                    Tmp.v1.trnsExact(f, spacing / 2 + 1);
+                    Tmp.v1.trnsExact(f, spacing / 2 + 7);
                     Bresenham2.line(x, y, x + (int)Tmp.v1.x, y + (int)Tmp.v1.y, (cx, cy) -> {
                         Geometry.circle(cx, cy, width, height, 3, (c2x, c2y) -> tiles[c2x][c2y].setBlock(Blocks.air));
                     });
@@ -128,7 +128,7 @@ public class HexedGenerator extends Generator{
         double h = Math.sqrt(3) * spacing/2;
         //base horizontal spacing=1.5w
         //offset = 3/4w
-        for(int x = 0; x < width / spacing - 2; x++){
+        for(int x = 0; x < width / spacing - 1; x++){
             for(int y = 0; y < height / (h/2) - 2; y++){
                 int cx = (int)(x * spacing*1.5 + (y%2)*spacing*3.0/4) + spacing/2;
                 int cy = (int)(y * h / 2) + spacing/2;
