@@ -2,6 +2,7 @@ package hexed;
 
 import arc.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.content.*;
@@ -25,18 +26,21 @@ public class HexedMod extends Plugin{
     private Schematic start;
     private HexedGenerator lastGenerator;
     private ObjectSet<Team> dying = new ObjectSet<>();
+    private ObjectSet<Team> chosen = new ObjectSet<>();
 
     @Override
     public void init(){
         rules.pvp = true;
         rules.tags.put("hexed", "true");
-        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 300, Items.graphite, 100, Items.metaglass, 100, Items.silicon, 100);
-        rules.buildCostMultiplier = 0.5f;
-        rules.unitBuildSpeedMultiplier = 2f;
-        rules.enemyCoreBuildRadius = (HexedGenerator.radius + 1) * tilesize;
+        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 100, Items.metaglass, 100, Items.silicon, 100);
+        rules.buildCostMultiplier = 1f;
+        rules.buildSpeedMultiplier = 0.25f;
+        rules.unitBuildSpeedMultiplier = 1f;
+        rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
+        rules.unitDamageMultiplier = 1f;
+        rules.playerHealthMultiplier = 2f;
 
-        start = Schematics.readBase64("bXNjaAB4nE2SXW7DIBCE12Awa+elB/FLr9FTEAtVkVzbIj9Vbl8wu6NaMkzMzjdLgCaaOuq3+JPIXeM9fTJNy34cKc+/cV3p49+PeY35O1FY9u2V3nsmG/NC030v3+cjbmklv8ZtSZkuy57TvD2XNT3vdMnpiLdSs9+2Bw3X+Hik/Cair/JSRzqaU9Wxh3JQHnUD6cMydzLbok5tTZmV0oHSCaU6uBmKGiXCyFp/VtbVqozUmTqcZAOyAdmAbFp/1hUV4NUMiwyLDCsZvtAcdqKOHo6+OUx/dqjfAhSjUr1KG4pq3kBO0qpq/dVVhkO9HjSPXI9cj1yPXA+vnpArSnc5NEdXFbcjKEodgfQJ+J9D27upykF5OAYhB5ADyAFkBpmll3r2etcYGYwMloxaN8hpMO4LgzzKvaunq5QRlBGdjtLDH6ERK0o=");
-
+        start = Schematics.readBase64("bXNjaAB4nE2SfW7DIAzFDSR8pP1nB8lJdgqaoalSClHSburtZxPbWqXCL8HvPQOBC1wMDDU/Cgy3fBR8Xtq2lX3+zesKH/8e5jXv3wXi0upPebcdXN4XuBwN389brmWFcCz5+Sw7XJe2l7m+lrW8DvCPUr/wbXzVtWWi6162fEdZu9cnhFtXvQHgE/9gQEbbicZBaVTyWhdAfolnw7ND6uwszuJi1MWwC9WlE5AmjrDsMvRKWiWyXGdp6M5Wna06W3Ym7v25ESnqO8lwmuE0w3GGR7dRdyKKQRXDqbChd0jbjkix759Wk1aKVtwS0qmdYOQ0ot6fo9WkCtF6dfOsjUikNS4gda2hVcn1qpUbGpEMuwROI5KzD6qQkyKSc47n3i3RqORVEdgvqnNU56jO0p1DOk+c7l6+taQZSTMSZ1BdUK04J3WeeG90u+IyqcuknU7cwx8dFTGj");
         Events.on(Trigger.update, () -> {
             if(active()){
                 for(Player player : playerGroup.all()){
@@ -61,8 +65,15 @@ public class HexedMod extends Plugin{
             for(int i = 0; i < lastGenerator.hex.size; i++){
                 int x = Pos.x(lastGenerator.hex.get(i));
                 int y = Pos.y(lastGenerator.hex.get(i));
-                if(!world.tile(x, y).block().synthetic()){
+                boolean[] synth = {false};
+                Geometry.circle(x, y, 4, (cx, cy) -> {
+                    if(world.tile(x, y).block().synthetic()){
+                        synth[0] = true;
+                    }
+                });
+                if(!synth[0]){
                     loadout(event.player, x, y);
+                    Core.app.post(() -> chosen.remove(event.player.getTeam()));
                     break;
                 }
             }
@@ -74,7 +85,8 @@ public class HexedMod extends Plugin{
             if(active()){
                 //pick first inactive team
                 for(Team team : Team.all()){
-                    if(team.id > 5 && !team.active() && !arr.contains(p -> p.getTeam() == team) && !dying.contains(team)){
+                    if(team.id > 5 && !team.active() && !arr.contains(p -> p.getTeam() == team) && !dying.contains(team) && !chosen.contains(team)){
+                        chosen.add(team);
                         return team;
                     }
                 }
@@ -88,6 +100,7 @@ public class HexedMod extends Plugin{
     @Override
     public void registerServerCommands(CommandHandler handler){
         handler.register("hexed", "Begin hosting with the Hexed gamemode.", args -> {
+            chosen.clear();
             logic.reset();
             Log.info("Generating map...");
             world.loadGenerator(lastGenerator = new HexedGenerator());
@@ -133,10 +146,11 @@ public class HexedMod extends Plugin{
             }else{
                 tile.configureAny(st.config);
             }
-
-            //if(st.block instanceof Drill){
-            //    tile.getLinkedTiles(t -> t.setOverlay(Blocks.oreCopper));
-           // }
+            if(tile.block() instanceof CoreBlock){
+                for(ItemStack stack : state.rules.loadout){
+                    Call.transferItemTo(stack.item, stack.amount, tile.drawx(), tile.drawy(), tile);
+                }
+            }
         });
     }
 

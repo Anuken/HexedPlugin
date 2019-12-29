@@ -16,8 +16,8 @@ import static mindustry.Vars.*;
 
 public class HexedGenerator extends Generator{
     public final static int size = 448;
-    public final static int radius = 55;
-    public final static int spacing = 70;
+    public final static int radius = 70;
+    public final static int spacing = 90;
     public IntArray hex = getHex();
 
     // elevation --->
