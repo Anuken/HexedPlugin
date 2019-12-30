@@ -24,7 +24,7 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in ticks: 20 minutes
-    private final static double roundTime = 30 * 60 * 60;
+    private final static double roundTime = 35 * 60 * 60;
     private final Rules rules = new Rules();
     private IntSet counts = IntSet.with(10, 5, 1);
     private IntSet countdownsUsed = new IntSet();
@@ -70,16 +70,17 @@ public class HexedMod extends Plugin{
                     }
                 }
 
-                int secsToGo = (int)(roundTime - counter) / 60 / 60;
-                if(counts.contains(secsToGo) && !countdownsUsed.contains(secsToGo)){
-                    Call.sendMessage("[accent]--- [scarlet] " + secsToGo + "[] minutes until server automatically resets![accent]  ---");
-                    countdownsUsed.add(secsToGo);
+                int minsToGo = (int)(roundTime - counter) / 60 / 60;
+                if(counts.contains(minsToGo) && !countdownsUsed.contains(minsToGo)){
+                    Call.sendMessage("[accent]--- [scarlet] " + minsToGo + "[] minutes until server automatically resets![accent]  ---");
+                    countdownsUsed.add(minsToGo);
                 }
 
                 counter += Time.delta();
 
                 //kick everyone and restart w/ the script
                 if(counter > roundTime){
+                    Log.info("&ly--SERVER RESTARTING--");
                     netServer.kickAll(KickReason.serverRestarting);
                     Time.runTask(5f, () -> System.exit(2));
                 }
@@ -104,7 +105,7 @@ public class HexedMod extends Plugin{
                 int y = Pos.y(lastGenerator.hex.get(i));
                 boolean[] synth = {false};
                 Geometry.circle(x, y, 15, (cx, cy) -> {
-                    if(world.tile(x, y).block().synthetic()){
+                    if(world.tile(cx, cy) != null && world.tile(cx, cy).block().synthetic()){
                         synth[0] = true;
                     }
                 });
@@ -151,6 +152,10 @@ public class HexedMod extends Plugin{
             state.rules = rules.copy();
             logic.play();
             netServer.openServer();
+        });
+
+        handler.register("countdown", "Get the hexed restart countdown.", args -> {
+            Log.info("Time until round ends: &lc{0} minutes", (int)(roundTime - counter) / 60 / 60);
         });
 
         handler.register("r", "Restart the server.", args -> System.exit(2));

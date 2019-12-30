@@ -15,9 +15,9 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 public class HexedGenerator extends Generator{
-    public final static int size = 448;
+    public final static int size = 516;
     public final static int radius = 74;
-    public final static int spacing = 94;
+    public final static int spacing = 78;
     public IntArray hex = getHex();
 
     // elevation --->
@@ -51,10 +51,9 @@ public class HexedGenerator extends Generator{
         Array<GenerateFilter> ores = new Array<>();
         maps.addDefaultOres(ores);
         ores.each(o -> ((OreFilter)o).threshold -= 0.05f);
-        ores.add(new OreFilter(){{
+        ores.insert(0, new OreFilter(){{
             ore = Blocks.oreScrap;
-            threshold += 0.018;
-            threshold += 2 / 2.1F;
+            scl += 2 / 2.1F;
         }});
         GenerateInput in = new GenerateInput();
 
@@ -133,7 +132,7 @@ public class HexedGenerator extends Generator{
         double h = Math.sqrt(3) * spacing/2;
         //base horizontal spacing=1.5w
         //offset = 3/4w
-        for(int x = 0; x < width / spacing - 1; x++){
+        for(int x = 0; x < width / spacing - 2; x++){
             for(int y = 0; y < height / (h/2) - 2; y++){
                 int cx = (int)(x * spacing*1.5 + (y%2)*spacing*3.0/4) + spacing/2;
                 int cy = (int)(y * h / 2) + spacing/2;
