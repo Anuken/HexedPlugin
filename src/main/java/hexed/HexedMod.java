@@ -24,7 +24,7 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in ticks: 20 minutes
-    private final static double roundTime = 35 * 60 * 60;
+    private final static double roundTime = 45 * 60 * 60;
     private final Rules rules = new Rules();
     private IntSet counts = IntSet.with(10, 5, 1);
     private IntSet countdownsUsed = new IntSet();
@@ -46,7 +46,7 @@ public class HexedMod extends Plugin{
         rules.canGameOver = false;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.playerDamageMultiplier = 0.25f;
-        rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
+        rules.enemyCoreBuildRadius = (HexedGenerator.radius - 1) * tilesize / 2f;
         rules.unitDamageMultiplier = 1f;
         rules.playerHealthMultiplier = 1f;
 
@@ -100,6 +100,7 @@ public class HexedMod extends Plugin{
             if(!active()) return;
 
             lastGenerator.hex.shuffle();
+            boolean found = false;
             for(int i = 0; i < lastGenerator.hex.size; i++){
                 int x = Pos.x(lastGenerator.hex.get(i));
                 int y = Pos.y(lastGenerator.hex.get(i));
@@ -111,9 +112,15 @@ public class HexedMod extends Plugin{
                 });
                 if(!synth[0]){
                     loadout(event.player, x, y);
+                    found = true;
                     Core.app.post(() -> chosen.remove(event.player.getTeam()));
                     break;
                 }
+            }
+
+            if(!found){
+                Call.onInfoMessage(player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
+                player.setTeam(Team.derelict);
             }
         });
 
