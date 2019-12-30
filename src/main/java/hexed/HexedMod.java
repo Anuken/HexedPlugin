@@ -6,12 +6,14 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.content.*;
+import mindustry.core.GameState.*;
 import mindustry.core.NetServer.*;
 import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Schematic.*;
 import mindustry.gen.*;
+import mindustry.net.Packets.*;
 import mindustry.plugin.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -21,12 +23,18 @@ import static arc.util.Log.info;
 import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
+    //in ticks: 20 minutes
+    private final static double roundTime = 25 * 60 * 60;
     private final Rules rules = new Rules();
+    private IntSet counts = IntSet.with(10, 5, 1);
+    private IntSet countdownsUsed = new IntSet();
 
     private Schematic start;
     private HexedGenerator lastGenerator;
     private ObjectSet<Team> dying = new ObjectSet<>();
     private ObjectSet<Team> chosen = new ObjectSet<>();
+    private ObjectSet<String> eliminated = new ObjectSet<>();
+    private double counter = 0f;
 
     @Override
     public void init(){
@@ -35,7 +43,7 @@ public class HexedMod extends Plugin{
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150);
         rules.buildCostMultiplier = 1f;
         rules.buildSpeedMultiplier = 1f / 3f;
-        rules.canGameOver = true;
+        rules.canGameOver = false;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.playerDamageMultiplier = 0.25f;
         rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
@@ -61,6 +69,23 @@ public class HexedMod extends Plugin{
                         player.setTeam(Team.derelict);
                     }
                 }
+
+                int secsToGo = (int)(roundTime - counter) / 60 / 60;
+                if(counts.contains(secsToGo) && !countdownsUsed.contains(secsToGo)){
+                    Call.sendMessage("[accent]--- [scarlet] " + secsToGo + "[] minutes until server automatically resets![accent]  ---");
+                    countdownsUsed.add(secsToGo);
+                }
+
+                counter += Time.delta();
+
+                //kick everyone and restart w/ the script
+                if(counter > roundTime){
+                    netServer.kickAll(KickReason.serverRestarting);
+                    Time.runTask(5f, () -> System.exit(2));
+                }
+            }else{
+                counter = 0;
+                countdownsUsed.clear();
             }
         });
 
@@ -94,6 +119,11 @@ public class HexedMod extends Plugin{
         TeamAssigner prev = netServer.assigner;
         netServer.assigner = (player, players) -> {
             Array<Player> arr = Array.with(players);
+            if(eliminated.contains(player.uuid)){
+                Call.onInfoMessage(player.con, "You have been eliminated! Wait until the round ends until connecting again.");
+                return Team.derelict;
+            }
+
             if(active()){
                 //pick first inactive team
                 for(Team team : Team.all()){
@@ -175,7 +205,7 @@ public class HexedMod extends Plugin{
     }
 
     public boolean active(){
-        return state.rules.tags.getBool("hexed");
+        return state.rules.tags.getBool("hexed") && !state.is(State.menu);
     }
 
 

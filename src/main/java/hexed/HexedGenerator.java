@@ -51,6 +51,11 @@ public class HexedGenerator extends Generator{
         Array<GenerateFilter> ores = new Array<>();
         maps.addDefaultOres(ores);
         ores.each(o -> ((OreFilter)o).threshold -= 0.05f);
+        ores.add(new OreFilter(){{
+            ore = Blocks.oreScrap;
+            threshold += 0.018 * 2;
+            threshold += 2 / 2.1F;
+        }});
         GenerateInput in = new GenerateInput();
 
         for(int x = 0; x < width; x++){
