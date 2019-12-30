@@ -25,10 +25,10 @@ public class HexedGenerator extends Generator{
     // |
     // v
     Block[][] floors = {
-        {Blocks.sandWater, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.grass},
-        {Blocks.darksandWater, Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass},
+        {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.grass},
+        {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass},
         {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.shale},
-        {Blocks.taintedWater, Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
+        {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
         {Blocks.ice, Blocks.iceSnow, Blocks.snow, Blocks.holostone, Blocks.stone, Blocks.salt}
     };
 

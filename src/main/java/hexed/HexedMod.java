@@ -35,6 +35,7 @@ public class HexedMod extends Plugin{
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150);
         rules.buildCostMultiplier = 1f;
         rules.buildSpeedMultiplier = 1f / 3f;
+        rules.canGameOver = false;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
         rules.unitDamageMultiplier = 1f;
@@ -62,6 +63,8 @@ public class HexedMod extends Plugin{
         });
 
         Events.on(PlayerJoin.class, event -> {
+            if(!active()) return;
+
             lastGenerator.hex.shuffle();
             for(int i = 0; i < lastGenerator.hex.size; i++){
                 int x = Pos.x(lastGenerator.hex.get(i));
