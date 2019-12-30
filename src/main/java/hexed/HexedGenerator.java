@@ -29,7 +29,7 @@ public class HexedGenerator extends Generator{
         {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass},
         {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.shale},
         {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
-        {Blocks.ice, Blocks.iceSnow, Blocks.snow, Blocks.holostone, Blocks.stone, Blocks.salt}
+        {Blocks.ice, Blocks.iceSnow, Blocks.snow, Blocks.holostone, Blocks.hotrock, Blocks.salt}
     };
 
     Block[][] blocks = {
@@ -53,7 +53,7 @@ public class HexedGenerator extends Generator{
         ores.each(o -> ((OreFilter)o).threshold -= 0.05f);
         ores.add(new OreFilter(){{
             ore = Blocks.oreScrap;
-            threshold += 0.018 * 2;
+            threshold += 0.018;
             threshold += 2 / 2.1F;
         }});
         GenerateInput in = new GenerateInput();
