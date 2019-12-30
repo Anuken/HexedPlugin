@@ -28,7 +28,7 @@ public class HexedGenerator extends Generator{
         {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.grass},
         {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass},
         {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.shale},
-        {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
+        {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
         {Blocks.ice, Blocks.iceSnow, Blocks.snow, Blocks.holostone, Blocks.stone, Blocks.salt}
     };
 
@@ -56,7 +56,7 @@ public class HexedGenerator extends Generator{
         for(int x = 0; x < width; x++){
             for(int y = 0; y < height; y++){
                 int temp = Mathf.clamp((int)((t.octaveNoise2D(12, 0.6, 1.0 / 400, x, y) - 0.5) * 10 * blocks.length), 0, blocks.length-1);
-                int elev = Mathf.clamp((int)((e.octaveNoise2D(12, 0.6, 1.0 / 700, x, y) - 0.5) * 10 * blocks[0].length), 0, blocks[0].length-1);
+                int elev = Mathf.clamp((int)(((e.octaveNoise2D(12, 0.6, 1.0 / 700, x, y) - 0.5) * 10 + 0.15f) * blocks[0].length), 0, blocks[0].length-1);
 
                 Block floor = floors[temp][elev];
                 Block wall = blocks[temp][elev];

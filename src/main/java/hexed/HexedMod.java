@@ -35,13 +35,21 @@ public class HexedMod extends Plugin{
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150);
         rules.buildCostMultiplier = 1f;
         rules.buildSpeedMultiplier = 1f / 3f;
-        rules.canGameOver = false;
+        rules.canGameOver = true;
         rules.unitBuildSpeedMultiplier = 1f;
+        rules.playerDamageMultiplier = 0.25f;
         rules.enemyCoreBuildRadius = (HexedGenerator.radius + 2) * tilesize / 2f;
         rules.unitDamageMultiplier = 1f;
         rules.playerHealthMultiplier = 2f;
 
         start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+        netServer.admins.addChatFilter((player, text) -> {
+            for(String swear : CurseFilter.swears){
+                text = text.replace(swear, "****");
+            }
+
+            return text;
+        });
 
         Events.on(Trigger.update, () -> {
             if(active()){
@@ -120,7 +128,14 @@ public class HexedMod extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-
+        handler.<Player>register("spectate", "Enter spectator mode. This destroys your base.", (args, player) -> {
+             if(player.getTeam() == Team.derelict){
+                 player.sendMessage("[scarlet]You're already spectating.");
+             }else{
+                 killTiles(player.getTeam());
+                 player.setTeam(Team.derelict);
+             }
+        });
     }
 
     private void killTiles(Team team){
