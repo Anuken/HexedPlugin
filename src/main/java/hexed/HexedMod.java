@@ -24,9 +24,9 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in ticks: 20 minutes
-    private final static double roundTime = 45 * 60 * 60;
+    private final static double roundTime = 50 * 60 * 60;
     private final Rules rules = new Rules();
-    private IntSet counts = IntSet.with(10, 5, 1);
+    private IntSet counts = IntSet.with(10, 5, 1, 30);
     private IntSet countdownsUsed = new IntSet();
 
     private Schematic start;
@@ -36,11 +36,12 @@ public class HexedMod extends Plugin{
     private ObjectSet<String> eliminated = new ObjectSet<>();
     private double counter = 0f;
 
+    //rules add bannedBlocks [ripple, hail]
     @Override
     public void init(){
         rules.pvp = true;
         rules.tags.put("hexed", "true");
-        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150);
+        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
         rules.buildCostMultiplier = 1f;
         rules.buildSpeedMultiplier = 1f / 3f;
         rules.canGameOver = false;
@@ -91,26 +92,26 @@ public class HexedMod extends Plugin{
         });
 
         Events.on(PlayerLeave.class, event -> {
-            if(event.player.getTeam() != Team.derelict){
+            if(active() && event.player.getTeam() != Team.derelict){
                 killTiles(event.player.getTeam());
             }
         });
 
         Events.on(PlayerJoin.class, event -> {
-            if(!active()) return;
+            if(!active() || event.player.getTeam() == Team.derelict) return;
 
             lastGenerator.hex.shuffle();
             boolean found = false;
             for(int i = 0; i < lastGenerator.hex.size; i++){
                 int x = Pos.x(lastGenerator.hex.get(i));
                 int y = Pos.y(lastGenerator.hex.get(i));
-                boolean[] synth = {false};
+                int[] health = {0};
                 Geometry.circle(x, y, 15, (cx, cy) -> {
                     if(world.tile(cx, cy) != null && world.tile(cx, cy).block().synthetic()){
-                        synth[0] = true;
+                        health[0] += world.tile(cx, cy).block().health;
                     }
                 });
-                if(!synth[0]){
+                if(health[0] > 1300){
                     loadout(event.player, x, y);
                     found = true;
                     Core.app.post(() -> chosen.remove(event.player.getTeam()));
@@ -119,15 +120,16 @@ public class HexedMod extends Plugin{
             }
 
             if(!found){
-                Call.onInfoMessage(player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
-                player.setTeam(Team.derelict);
+                Call.onInfoMessage(event.player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
+                event.player.kill();
+                event.player.setTeam(Team.derelict);
             }
         });
 
         TeamAssigner prev = netServer.assigner;
         netServer.assigner = (player, players) -> {
             Array<Player> arr = Array.with(players);
-            if(eliminated.contains(player.uuid)){
+            if(active() && eliminated.contains(player.uuid)){
                 Call.onInfoMessage(player.con, "You have been eliminated! Wait until the round ends until connecting again.");
                 return Team.derelict;
             }
@@ -175,6 +177,7 @@ public class HexedMod extends Plugin{
                  player.sendMessage("[scarlet]You're already spectating.");
              }else{
                  killTiles(player.getTeam());
+                 player.kill();
                  player.setTeam(Team.derelict);
              }
         });
