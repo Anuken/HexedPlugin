@@ -181,6 +181,83 @@ public class HexedMod extends Plugin{
                  player.setTeam(Team.derelict);
              }
         });
+        handler.<Player>register("alliance", "Select a player to be allance.", (args, player) -> {
+            if(args.length == 0){
+                StringBuilder builder = new StringBuilder();
+                builder.append("[orange]Players to alliance: \n");
+                for(Player p : playerGroup.all()){
+                    if(p.con == null || p == player) continue;
+
+                    builder.append("[lightgray] ").append(p.name).append("[accent] (#").append(p.id).append(")");
+                    if (player.getTeam().isAllies(found)){
+                        builder.append("[green] /Allies/ \n");
+                    }else{
+                        builder.append("\n");
+                    }
+                }
+                player.sendMessage(builder.toString());
+            }else{
+                Player found;
+                if(args[0].length() > 1 && args[0].startsWith("#") && Strings.canParseInt(args[0].substring(1))){
+                    int id = Strings.parseInt(args[0].substring(1));
+                    found = playerGroup.find(p -> p.id == id);
+                }else{
+                    found = playerGroup.find(p -> p.name.equalsIgnoreCase(args[0]));
+                }
+                if(found != null){
+                    if(player.getTeam().isAllies(found) ){
+                        player.sendMessage("[scarlet]You already alliance him.");
+                        if (!found.getTeam().isAllies(player)) player.sendMessage("[scarlet]However, he didn't alliance you as now.");
+                    }else{
+                        player.getTeam().addAllies(found.getTeam());
+                        player.sendMessage("[scarlet]You alliance him.");
+                        StringBuilder builder = new StringBuilder();
+                        builder.append("[scarlet]").append(player.name).append(" alliance you. If you want alliance him, please do `/alliance #").append(player.id).append("`\n");
+                        found.sendMessage(builder.toString());
+                    }
+                }else{
+                    player.sendMessage("[scarlet]No player[orange]'" + args[0] + "'[scarlet] found.");
+                }
+            }
+        handler.<Player>register("broke", "Select ally to break the alliance. If you do, the ally will knows you did.", (args, player) -> {
+            if(args.length == 0){
+                StringBuilder builder = new StringBuilder();
+                builder.append("[orange]Allies to broke: \n");
+                for(Player p : playerGroup.all()){
+                    if(p.con == null || p == player) continue;
+
+                    if(player.getTeam(isAllies(p.getTeam))) {
+                        builder.append("[lightgray] ").append(p.name).append("[accent] (#").append(p.id).append(") [green] /Allies/\n");
+                    }
+                }
+                player.sendMessage(builder.toString());
+            }else{
+                Player found;
+                if(args[0].length() > 1 && args[0].startsWith("#") && Strings.canParseInt(args[0].substring(1))){
+                    int id = Strings.parseInt(args[0].substring(1));
+                    found = playerGroup.find(p -> p.id == id);
+                }else{
+                    found = playerGroup.find(p -> p.name.equalsIgnoreCase(args[0]));
+                }
+                if(found != null){
+                    if(player.getTeam().isAllies(found.getTeam()) ){
+                        player.getTeam().removeAllies(found.getTeam())
+                        if (!found.getTeam().isAllies(player.getTeam()) ){
+                            player.sendMessage("[scarlet]You undo the alliance with \"" + found.name + "\".");
+                            found.sendMessage("[yellow]" + player.name + " undo the alliance with you.");   
+                        }else{
+                            found.getTeam().removeAllies(player.getTeam())
+                            player.sendMessage("[scarlet]You break the alliance with \"" + found.name + "\".");
+                            found.sendMessage("[yellow]Warning! " + player.name + " breaks alliance with you.");   
+                        }
+                    }else{
+                        player.sendMessage("[scarlet]He didn't alliance you.");
+                    }
+                }else{
+                    player.sendMessage("[scarlet]No player[orange]'" + args[0] + "'[scarlet] found.");
+                }
+            }
+        });
     }
 
     private void killTiles(Team team){
