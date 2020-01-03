@@ -181,6 +181,9 @@ public class HexedMod extends Plugin{
                  player.setTeam(Team.derelict);
              }
         });
+        handler.<Player>register("countdown", "Get the hexed restart countdown.", (args, player)-> {
+            player.sendMessage("[scarlet]Time until round ends: [yellow]" + (int)(roundTime - counter) / 60 / 60 + " minutes " + (int)(roundTime - counter) / 60 % 60 + " seconds");
+        });
         handler.<Player>register("alliance", "Select a player to be allance.", (args, player) -> {
             if(args.length == 0){
                 StringBuilder builder = new StringBuilder();
@@ -189,7 +192,7 @@ public class HexedMod extends Plugin{
                     if(p.con == null || p == player) continue;
 
                     builder.append("[lightgray] ").append(p.name).append("[accent] (#").append(p.id).append(")");
-                    if (player.getTeam().isAllies(found)){
+                    if (player.getTeam().isAllies(p.getTeam())){
                         builder.append("[green] /Allies/ \n");
                     }else{
                         builder.append("\n");
@@ -205,9 +208,9 @@ public class HexedMod extends Plugin{
                     found = playerGroup.find(p -> p.name.equalsIgnoreCase(args[0]));
                 }
                 if(found != null){
-                    if(player.getTeam().isAllies(found) ){
+                    if(player.getTeam().isAllies(found.getTeam()) ){
                         player.sendMessage("[scarlet]You already alliance him.");
-                        if (!found.getTeam().isAllies(player)) player.sendMessage("[scarlet]However, he didn't alliance you as now.");
+                        if (!found.getTeam().isAllies(player.getTeam())) player.sendMessage("[scarlet]However, he didn't alliance you as now.");
                     }else{
                         player.getTeam().addAllies(found.getTeam());
                         player.sendMessage("[scarlet]You alliance him.");
@@ -219,6 +222,7 @@ public class HexedMod extends Plugin{
                     player.sendMessage("[scarlet]No player[orange]'" + args[0] + "'[scarlet] found.");
                 }
             }
+        });
         handler.<Player>register("broke", "Select ally to break the alliance. If you do, the ally will knows you did.", (args, player) -> {
             if(args.length == 0){
                 StringBuilder builder = new StringBuilder();
@@ -226,7 +230,7 @@ public class HexedMod extends Plugin{
                 for(Player p : playerGroup.all()){
                     if(p.con == null || p == player) continue;
 
-                    if(player.getTeam(isAllies(p.getTeam))) {
+                    if(player.getTeam().isAllies(p.getTeam())) {
                         builder.append("[lightgray] ").append(p.name).append("[accent] (#").append(p.id).append(") [green] /Allies/\n");
                     }
                 }
@@ -241,12 +245,12 @@ public class HexedMod extends Plugin{
                 }
                 if(found != null){
                     if(player.getTeam().isAllies(found.getTeam()) ){
-                        player.getTeam().removeAllies(found.getTeam())
+                        player.getTeam().removeAllies(found.getTeam());
                         if (!found.getTeam().isAllies(player.getTeam()) ){
                             player.sendMessage("[scarlet]You undo the alliance with \"" + found.name + "\".");
                             found.sendMessage("[yellow]" + player.name + " undo the alliance with you.");   
                         }else{
-                            found.getTeam().removeAllies(player.getTeam())
+                            found.getTeam().removeAllies(player.getTeam());
                             player.sendMessage("[scarlet]You break the alliance with \"" + found.name + "\".");
                             found.sendMessage("[yellow]Warning! " + player.name + " breaks alliance with you.");   
                         }
