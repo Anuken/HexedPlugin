@@ -23,8 +23,11 @@ import static arc.util.Log.info;
 import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
-    //in ticks: 20 minutes
-    private final static double roundTime = 50 * 60 * 60;
+    //in ticks: 60 minutes
+    private final static int roundTime = 60 * 60 * 60;
+    //in ticks: 5 minutes
+    private final static int leaderboardTime = 60 * 60 * 5;
+
     private final Rules rules = new Rules();
     private IntSet counts = IntSet.with(10, 5, 1, 30);
     private IntSet countdownsUsed = new IntSet();
@@ -36,7 +39,6 @@ public class HexedMod extends Plugin{
     private ObjectSet<String> eliminated = new ObjectSet<>();
     private double counter = 0f;
 
-    //rules add bannedBlocks [ripple, hail]
     @Override
     public void init(){
         rules.pvp = true;
@@ -54,7 +56,7 @@ public class HexedMod extends Plugin{
         start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
         netServer.admins.addChatFilter((player, text) -> {
             for(String swear : CurseFilter.swears){
-                text = text.replace(swear, "****");
+                text = text.replaceAll("(?i)" + swear, "****");
             }
 
             return text;
@@ -68,6 +70,10 @@ public class HexedMod extends Plugin{
                         killTiles(player.getTeam());
                         Call.onInfoMessage(player.con, "Your cores have been destroyed. You are defeated.");
                         player.setTeam(Team.derelict);
+                    }
+
+                    if(player.getTeam() == Team.derelict){
+                        player.dead = true;
                     }
                 }
 
@@ -97,6 +103,14 @@ public class HexedMod extends Plugin{
             }
         });
 
+        Events.on(PlayerConnect.class, event -> {
+            for(String swear : CurseFilter.swears){
+                if(event.player.name.toLowerCase().contains(swear)){
+                    event.player.con.kick("That's not a very nice name.");
+                }
+            }
+        });
+
         Events.on(PlayerJoin.class, event -> {
             if(!active() || event.player.getTeam() == Team.derelict) return;
 
@@ -111,7 +125,7 @@ public class HexedMod extends Plugin{
                         health[0] += world.tile(cx, cy).block().health;
                     }
                 });
-                if(health[0] > 1300){
+                if(health[0] <= 2000){
                     loadout(event.player, x, y);
                     found = true;
                     Core.app.post(() -> chosen.remove(event.player.getTeam()));
