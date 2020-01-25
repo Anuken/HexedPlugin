@@ -23,13 +23,13 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in seconds
-    public static final float spawnDelay = 90;
+    public static final float spawnDelay = 60 * 3;
     //health requirement needed to capture a hex
-    public static final float healthRequirement = 2500;
+    public static final float healthRequirement = 3000;
     //in ticks: 60 minutes
     private final static int roundTime = 60 * 60 * 60;
     //in ticks: 3 minutes
-    private final static int leaderboardTime = 60 * 60 * 3;
+    private final static int leaderboardTime = 60 * 60 * 2;
 
     private final static int updateTime = 60 * 2;
 
@@ -39,7 +39,7 @@ public class HexedMod extends Plugin{
     private Interval interval = new Interval(5);
 
     private HexData data;
-    private boolean restarting = false;
+    private boolean restarting = false, registered = false;
 
     private Schematic start;
     private double counter = 0f;
@@ -51,12 +51,12 @@ public class HexedMod extends Plugin{
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
         rules.buildCostMultiplier = 1f;
         rules.buildSpeedMultiplier = 1f / 3f;
-        rules.blockHealthMultiplier = 2f;
+        rules.blockHealthMultiplier = 1.1f;
         rules.canGameOver = false;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.playerDamageMultiplier = 0.75f;
         rules.enemyCoreBuildRadius = (Hex.diameter - 1) * tilesize / 2f;
-        rules.unitDamageMultiplier = 1f;
+        rules.unitDamageMultiplier = 1.1f;
         rules.playerHealthMultiplier = 1f;
 
         start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
@@ -77,7 +77,7 @@ public class HexedMod extends Plugin{
                     if(player.getTeam() != Team.derelict && player.getTeam().cores().isEmpty()){
                         player.kill();
                         killTiles(player.getTeam());
-                        Call.sendMessage("[scarlet]" + player.name + "[orange] has been eliminated!");
+                        Call.sendMessage("[yellow](!)[] [accent]" + player.name + "[lightgray] has been eliminated![yellow] (!)");
                         Call.onInfoMessage(player.con, "Your cores have been destroyed. You are defeated.");
                         player.setTeam(Team.derelict);
                     }
@@ -88,17 +88,7 @@ public class HexedMod extends Plugin{
                 }
 
                 if(interval.get(timerBoard, leaderboardTime)){
-                    int minsToGo = (int)(roundTime - counter) / 60 / 60;
-                    StringBuilder builder = new StringBuilder();
-                    builder.append("[accent]Leaderboard\n[scarlet]").append(minsToGo).append("[lightgray] mins. remaining\n\n");
-                    int count = 0;
-                    for(Player player : data.getLeaderboard()){
-                        builder.append("[yellow]").append(++count).append(".[] ")
-                        .append(player.name).append("[orange] (x").append(data.getControlled(player).size).append(")");
-
-                        if(count > 5) break;
-                    }
-                    Call.onInfoToast(builder.toString(), 15f);
+                    Call.onInfoToast(getLeaderboard(), 15f);
                 }
 
                 if(interval.get(timerUpdate, updateTime)){
@@ -121,7 +111,7 @@ public class HexedMod extends Plugin{
                         for(Player player : playerGroup.all()){
                             Call.onInfoMessage(player.con, "[accent]--ROUND OVER--\n\n[lightgray]"
                                 + (player == players.first() ? "[accent]You[] were" : "[yellow]" + players.first().name + "[lightgray] was") +
-                                " victorious, with [accent]" + data.getControlled(player).size + "[lightgray] hexes conquered.\n\nFinal scores:\n" + builder);
+                                " victorious, with [accent]" + data.getControlled(players.first()).size + "[lightgray] hexes conquered.\n\nFinal scores:\n" + builder);
                         }
                     }
 
@@ -231,6 +221,9 @@ public class HexedMod extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
+        if(registered) return;
+        registered = true;
+
         handler.<Player>register("spectate", "Enter spectator mode. This destroys your base.", (args, player) -> {
              if(player.getTeam() == Team.derelict){
                  player.sendMessage("[scarlet]You're already spectating.");
@@ -240,6 +233,32 @@ public class HexedMod extends Plugin{
                  player.setTeam(Team.derelict);
              }
         });
+
+        handler.<Player>register("captured", "Dispay the number of hexes you have captured.", (args, player) -> {
+            if(player.getTeam() == Team.derelict){
+                player.sendMessage("[scarlet]You're spectating.");
+            }else{
+                player.sendMessage("[lightgray]You've captured[accent] " + data.getControlled(player).size + "[] hexes.");
+            }
+        });
+
+        handler.<Player>register("leaderboard", "Dispay the leaderboard", (args, player) -> {
+            player.sendMessage(getLeaderboard());
+        });
+    }
+
+    String getLeaderboard(){
+        int minsToGo = (int)(roundTime - counter) / 60 / 60;
+        StringBuilder builder = new StringBuilder();
+        builder.append("[accent]Leaderboard\n[scarlet]").append(minsToGo).append("[lightgray] mins. remaining\n\n");
+        int count = 0;
+        for(Player player : data.getLeaderboard()){
+            builder.append("[yellow]").append(++count).append(".[white] ")
+            .append(player.name).append("[orange] (x").append(data.getControlled(player).size).append(")\n[white]");
+
+            if(count > 4) break;
+        }
+        return builder.toString();
     }
 
     void killTiles(Team team){
