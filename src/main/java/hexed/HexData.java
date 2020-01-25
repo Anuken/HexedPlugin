@@ -1,11 +1,14 @@
 package hexed;
 
+import arc.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
-import mindustry.*;
+import arc.util.*;
 import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.world.*;
+
+import static mindustry.Vars.playerGroup;
 
 public class HexData{
     /** All hexes on the map. No order. */
@@ -25,8 +28,31 @@ public class HexData{
             arr.clear();
         }
 
-        for(Player player : Vars.playerGroup.all()){
+        for(Player player : playerGroup.all()){
             teamMap.put(player.getTeam().id, player);
+            HexTeam team = data(player);
+            Hex newHex = hexes.min(h -> player.dst2(h.wx, h.wy));
+            if(team.location != newHex){
+                team.location = newHex;
+                team.progressPercent = newHex.getProgressPercent(player.getTeam());
+                team.lastCaptured = newHex.controller == player.getTeam();
+                Events.fire(new HexMoveEvent(player));
+            }
+            float currPercent = newHex.getProgressPercent(player.getTeam());
+            int lp = (int)(team.progressPercent / 10);
+            int np = (int)(currPercent / 10);
+            team.progressPercent = currPercent;
+            if(np != lp){
+                Events.fire(new ProgressIncreaseEvent(player, currPercent));
+            }
+
+            boolean captured = newHex.controller == player.getTeam();
+            if(team.lastCaptured != captured){
+                team.lastCaptured = captured;
+                if(captured && !newHex.hasCore()){
+                    Events.fire(new HexCaptureEvent(player, newHex));
+                }
+            }
         }
 
         for(Hex hex : hexes){
@@ -45,7 +71,7 @@ public class HexData{
 
     /** Allocates a new array of players sorted by score, descending. */
     public Array<Player> getLeaderboard(){
-        Array<Player> players = Vars.playerGroup.all().copy();
+        Array<Player> players = playerGroup.all().copy();
         players.sort(p -> -getControlled(p).size);
         return players;
     }
@@ -68,7 +94,7 @@ public class HexData{
     public void initHexes(IntArray ints){
         for(int i = 0; i < ints.size; i++){
             int pos = ints.get(i);
-            hexes.add(new Hex(Pos.x(pos), Pos.y(pos)));
+            hexes.add(new Hex(i, Pos.x(pos), Pos.y(pos)));
             hexPos.put(pos, hexes.peek());
         }
     }
@@ -93,5 +119,37 @@ public class HexData{
     public static class HexTeam{
         public boolean dying;
         public boolean chosen;
+        public @Nullable Hex location;
+        public float progressPercent;
+        public boolean lastCaptured;
+        public Timekeeper lastMessage = new Timekeeper(HexedMod.messageTime);
+    }
+
+    public static class HexCaptureEvent{
+        public final Player player;
+        public final Hex hex;
+
+        public HexCaptureEvent(Player player, Hex hex){
+            this.player = player;
+            this.hex = hex;
+        }
+    }
+
+    public static class HexMoveEvent{
+        public final Player player;
+
+        public HexMoveEvent(Player player){
+            this.player = player;
+        }
+    }
+
+    public static class ProgressIncreaseEvent{
+        public final Player player;
+        public final float percent;
+
+        public ProgressIncreaseEvent(Player player, float percent){
+            this.player = player;
+            this.percent = percent;
+        }
     }
 }

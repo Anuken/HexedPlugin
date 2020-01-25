@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import hexed.HexData.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.core.NetServer.*;
@@ -23,17 +24,23 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in seconds
-    public static final float spawnDelay = 60 * 3;
-    //health requirement needed to capture a hex
+    public static final float spawnDelay = 60 * 5;
+    //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
+    //item requirement to captured a hex
+    public static final int itemRequirement = 230;
+
+    public static final int messageTime = 3;
     //in ticks: 60 minutes
-    private final static int roundTime = 60 * 60 * 70;
+    private final static int roundTime = 60 * 60 * 90;
     //in ticks: 3 minutes
     private final static int leaderboardTime = 60 * 60 * 2;
 
     private final static int updateTime = 60 * 2;
 
-    private final static int timerBoard = 0, timerUpdate = 1;
+    private final static int winCondition = 8;
+
+    private final static int timerBoard = 0, timerUpdate = 1, timerWinCheck = 2;
 
     private final Rules rules = new Rules();
     private Interval interval = new Interval(5);
@@ -43,6 +50,7 @@ public class HexedMod extends Plugin{
 
     private Schematic start;
     private double counter = 0f;
+    private int lastMin;
 
     @Override
     public void init(){
@@ -84,7 +92,15 @@ public class HexedMod extends Plugin{
 
                     if(player.getTeam() == Team.derelict){
                         player.dead = true;
+                    }else if(data.getControlled(player).size == data.hexes().size){
+                        endGame();
+                        break;
                     }
+                }
+
+                int minsToGo = (int)(roundTime - counter) / 60 / 60;
+                if(minsToGo != lastMin){
+                    lastMin = minsToGo;
                 }
 
                 if(interval.get(timerBoard, leaderboardTime)){
@@ -95,31 +111,18 @@ public class HexedMod extends Plugin{
                     data.updateControl();
                 }
 
+                if(interval.get(timerWinCheck, 60 * 2)){
+                    Array<Player> players = data.getLeaderboard();
+                    if(!players.isEmpty() && data.getControlled(players.first()).size >= winCondition && players.size > 1 && data.getControlled(players.get(1)).size < 2){
+                        endGame();
+                    }
+                }
+
                 counter += Time.delta();
 
                 //kick everyone and restart w/ the script
                 if(counter > roundTime && !restarting){
-                    restarting = true;
-                    Array<Player> players = data.getLeaderboard();
-                    StringBuilder builder = new StringBuilder();
-                    for(int i = 0; i < players.size && i < 3; i++){
-                        builder.append("[yellow]").append(i + 1).append(".[accent] ").append(players.get(i).name)
-                        .append("[lightgray] (x").append(data.getControlled(players.get(i)).size).append(")[]\n");
-                    }
-
-                    if(!players.isEmpty()){
-                        for(Player player : playerGroup.all()){
-                            Call.onInfoMessage(player.con, "[accent]--ROUND OVER--\n\n[lightgray]"
-                                + (player == players.first() ? "[accent]You[] were" : "[yellow]" + players.first().name + "[lightgray] was") +
-                                " victorious, with [accent]" + data.getControlled(players.first()).size + "[lightgray] hexes conquered.\n\nFinal scores:\n" + builder);
-                        }
-                    }
-
-                    Log.info("&ly--SERVER RESTARTING--");
-                    Time.runTask(60f * 10f, () -> {
-                        netServer.kickAll(KickReason.serverRestarting);
-                        Time.runTask(5f, () -> System.exit(2));
-                    });
+                    endGame();
                 }
             }else{
                 counter = 0;
@@ -172,13 +175,37 @@ public class HexedMod extends Plugin{
             }
         });
 
+        Events.on(ProgressIncreaseEvent.class, event -> {
+            HexTeam team = data.data(event.player);
+            if(team.location.controller == event.player.getTeam()) return;
+
+            Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + (team.location.controller != null ? "\n[scarket][[CONTESTED]" : "\n[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%"), 2f);
+            team.lastMessage.reset();
+        });
+
+        Events.on(HexCaptureEvent.class, event -> {
+            Call.onInfoToast(event.player.con, "[yellow]Hex #" + event.hex.id + ": [[CAPTURED]", 3f);
+            data.data(event.player).lastMessage.reset();
+        });
+
+        Events.on(HexMoveEvent.class, event -> {
+            HexTeam team = data.data(event.player);
+
+            if(!team.lastMessage.get()) return;
+
+            if(team.progressPercent >= 10 || team.location.controller == event.player.getTeam()){
+                Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + "\n" +
+                    (team.location.controller == event.player.getTeam() ? "[yellow][[Captured]" :
+                    team.location.controller != null ? "[red][[Contested]" :
+                    ("[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%")), 2f);
+
+                team.lastMessage.reset();
+            }
+        });
+
         TeamAssigner prev = netServer.assigner;
         netServer.assigner = (player, players) -> {
             Array<Player> arr = Array.with(players);
-            //if(active() && eliminated.contains(player.uuid)){
-            //    Call.onInfoMessage(player.con, "You have been eliminated! Wait until the round ends until connecting again.");
-            //    return Team.derelict;
-            //}
 
             if(active()){
                 //pick first inactive team
@@ -252,14 +279,41 @@ public class HexedMod extends Plugin{
         });
     }
 
-    String getLeaderboard(){
-        int minsToGo = (int)(roundTime - counter) / 60 / 60;
+    void endGame(){
+        restarting = true;
+        Array<Player> players = data.getLeaderboard();
         StringBuilder builder = new StringBuilder();
-        builder.append("[accent]Leaderboard\n[scarlet]").append(minsToGo).append("[lightgray] mins. remaining\n\n");
+        for(int i = 0; i < players.size && i < 3; i++){
+            if(data.getControlled(players.get(i)).size > 1){
+                builder.append("[yellow]").append(i + 1).append(".[accent] ").append(players.get(i).name)
+                .append("[lightgray] (x").append(data.getControlled(players.get(i)).size).append(")[]\n");
+            }
+        }
+
+        if(!players.isEmpty()){
+            boolean dominated = data.getControlled(players.first()).size == data.hexes().size;
+
+            for(Player player : playerGroup.all()){
+                Call.onInfoMessage(player.con, "[accent]--ROUND OVER--\n\n[lightgray]"
+                + (player == players.first() ? "[accent]You[] were" : "[yellow]" + players.first().name + "[lightgray] was") +
+                " victorious, with [accent]" + data.getControlled(players.first()).size + "[lightgray] hexes conquered." + (dominated ? "" : "\n\nFinal scores:\n" + builder));
+            }
+        }
+
+        Log.info("&ly--SERVER RESTARTING--");
+        Time.runTask(60f * 10f, () -> {
+            netServer.kickAll(KickReason.serverRestarting);
+            Time.runTask(5f, () -> System.exit(2));
+        });
+    }
+
+    String getLeaderboard(){
+        StringBuilder builder = new StringBuilder();
+        builder.append("[accent]Leaderboard\n[scarlet]").append(lastMin).append("[lightgray] mins. remaining\n\n");
         int count = 0;
         for(Player player : data.getLeaderboard()){
             builder.append("[yellow]").append(++count).append(".[white] ")
-            .append(player.name).append("[orange] (x").append(data.getControlled(player).size).append(" hexes)\n[white]");
+            .append(player.name).append("[orange] (").append(data.getControlled(player).size).append(" hexes)\n[white]");
 
             if(count > 4) break;
         }
@@ -287,7 +341,12 @@ public class HexedMod extends Plugin{
             Tile tile = world.tile(st.x + ox, st.y + oy);
             if(tile == null) return;
 
-            Call.onConstructFinish(tile, st.block, -1, st.rotation, player.getTeam(), true);
+            if(tile.link().block() != Blocks.air){
+                tile.link().removeNet();
+            }
+
+            tile.setNet(st.block, player.getTeam(), st.rotation);
+
             if(st.block.posConfig){
                 tile.configureAny(Pos.get(tile.x - st.x + Pos.x(st.config), tile.y - st.y + Pos.y(st.config)));
             }else{
