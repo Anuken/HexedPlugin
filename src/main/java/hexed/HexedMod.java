@@ -25,9 +25,9 @@ public class HexedMod extends Plugin{
     //in seconds
     public static final float spawnDelay = 60 * 3;
     //health requirement needed to capture a hex
-    public static final float healthRequirement = 3000;
+    public static final float healthRequirement = 3500;
     //in ticks: 60 minutes
-    private final static int roundTime = 60 * 60 * 60;
+    private final static int roundTime = 60 * 60 * 70;
     //in ticks: 3 minutes
     private final static int leaderboardTime = 60 * 60 * 2;
 
@@ -199,6 +199,11 @@ public class HexedMod extends Plugin{
     @Override
     public void registerServerCommands(CommandHandler handler){
         handler.register("hexed", "Begin hosting with the Hexed gamemode.", args -> {
+            if(!state.is(State.menu)){
+                Log.err("Stop the server first.");
+                return;
+            }
+
             data = new HexData();
 
             logic.reset();
@@ -254,7 +259,7 @@ public class HexedMod extends Plugin{
         int count = 0;
         for(Player player : data.getLeaderboard()){
             builder.append("[yellow]").append(++count).append(".[white] ")
-            .append(player.name).append("[orange] (x").append(data.getControlled(player).size).append(")\n[white]");
+            .append(player.name).append("[orange] (x").append(data.getControlled(player).size).append(" hexes)\n[white]");
 
             if(count > 4) break;
         }
