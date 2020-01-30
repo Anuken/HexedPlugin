@@ -32,6 +32,8 @@ public class HexData{
         }
 
         for(Player player : playerGroup.all()){
+            if(player.isDead()) continue;
+
             HexTeam team = data(player);
             Hex newHex = hexes.min(h -> player.dst2(h.wx, h.wy));
             if(team.location != newHex){

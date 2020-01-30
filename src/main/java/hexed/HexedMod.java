@@ -31,7 +31,7 @@ public class HexedMod extends Plugin{
     //item requirement to captured a hex
     public static final int itemRequirement = 210;
 
-    public static final int messageTime = 3;
+    public static final int messageTime = 1;
     //in ticks: 60 minutes
     private final static int roundTime = 60 * 60 * 90;
     //in ticks: 3 minutes
@@ -180,7 +180,7 @@ public class HexedMod extends Plugin{
 
         Events.on(ProgressIncreaseEvent.class, event -> {
             HexTeam team = data.data(event.player);
-            if(team.location.controller == event.player.getTeam()) return;
+            if(team.location.controller == event.player.getTeam() || !team.lastMessage.get()) return;
 
             Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + (team.location.controller != null ? "\n[scarlet][[CONTESTED]" : "\n[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%"), 2f);
             team.lastMessage.reset();
@@ -195,6 +195,8 @@ public class HexedMod extends Plugin{
             HexTeam team = data.data(event.player);
 
             StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + "\n");
+
+            if(!team.lastMessage.get()) return;
 
             if(team.location.controller == null){
                 if(team.progressPercent > 0){
