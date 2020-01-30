@@ -84,7 +84,7 @@ public class Hex{
     }
 
     public boolean contains(float x, float y){
-        return Intersector.isInsideHexagon(wx, wy, rad, x, y);
+        return Intersector.isInsideHexagon(wx, wy, rad * 2, x, y);
     }
 
     public boolean contains(Tile tile){

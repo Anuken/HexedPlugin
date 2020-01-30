@@ -12,6 +12,7 @@ import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Schematic.*;
+import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.net.Packets.*;
 import mindustry.plugin.*;
@@ -24,11 +25,11 @@ import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
     //in seconds
-    public static final float spawnDelay = 60 * 5;
+    public static final float spawnDelay = 60 * 4;
     //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
     //item requirement to captured a hex
-    public static final int itemRequirement = 230;
+    public static final int itemRequirement = 210;
 
     public static final int messageTime = 3;
     //in ticks: 60 minutes
@@ -38,7 +39,7 @@ public class HexedMod extends Plugin{
 
     private final static int updateTime = 60 * 2;
 
-    private final static int winCondition = 8;
+    private final static int winCondition = 10;
 
     private final static int timerBoard = 0, timerUpdate = 1, timerWinCheck = 2;
 
@@ -58,14 +59,14 @@ public class HexedMod extends Plugin{
         rules.tags.put("hexed", "true");
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
         rules.buildCostMultiplier = 1f;
-        rules.buildSpeedMultiplier = 1f / 3f;
-        rules.blockHealthMultiplier = 1.1f;
-        rules.canGameOver = false;
+        rules.buildSpeedMultiplier = 1f / 2f;
+        rules.blockHealthMultiplier = 1.2f;
         rules.unitBuildSpeedMultiplier = 1f;
         rules.playerDamageMultiplier = 0.75f;
         rules.enemyCoreBuildRadius = (Hex.diameter - 1) * tilesize / 2f;
         rules.unitDamageMultiplier = 1.1f;
         rules.playerHealthMultiplier = 1f;
+        rules.canGameOver = false;
 
         start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
 
@@ -113,7 +114,7 @@ public class HexedMod extends Plugin{
 
                 if(interval.get(timerWinCheck, 60 * 2)){
                     Array<Player> players = data.getLeaderboard();
-                    if(!players.isEmpty() && data.getControlled(players.first()).size >= winCondition && players.size > 1 && data.getControlled(players.get(1)).size < 2){
+                    if(!players.isEmpty() && data.getControlled(players.first()).size >= winCondition && players.size > 1 && data.getControlled(players.get(1)).size <= 2){
                         endGame();
                     }
                 }
@@ -173,13 +174,15 @@ public class HexedMod extends Plugin{
                 event.player.kill();
                 event.player.setTeam(Team.derelict);
             }
+
+            data.data(event.player).lastMessage.reset();
         });
 
         Events.on(ProgressIncreaseEvent.class, event -> {
             HexTeam team = data.data(event.player);
             if(team.location.controller == event.player.getTeam()) return;
 
-            Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + (team.location.controller != null ? "\n[scarket][[CONTESTED]" : "\n[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%"), 2f);
+            Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + (team.location.controller != null ? "\n[scarlet][[CONTESTED]" : "\n[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%"), 2f);
             team.lastMessage.reset();
         });
 
@@ -191,16 +194,23 @@ public class HexedMod extends Plugin{
         Events.on(HexMoveEvent.class, event -> {
             HexTeam team = data.data(event.player);
 
-            if(!team.lastMessage.get()) return;
+            StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + "\n");
 
-            if(team.progressPercent >= 10 || team.location.controller == event.player.getTeam()){
-                Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + "\n" +
-                    (team.location.controller == event.player.getTeam() ? "[yellow][[Captured]" :
-                    team.location.controller != null ? "[red][[Contested]" :
-                    ("[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%")), 2f);
-
-                team.lastMessage.reset();
+            if(team.location.controller == null){
+                if(team.progressPercent > 0){
+                    message.append("[lightgray]Capture progress: [accent]").append((int)(team.progressPercent)).append("%");
+                }else{
+                    message.append("[lightgray][[Empty]");
+                }
+            }else if(team.location.controller == event.player.getTeam()){
+                message.append("[yellow][[Captured]");
+            }else if(team.location != null && team.location.controller != null && data.getPlayer(team.location.controller) != null){
+                message.append("[#").append(team.location.controller.color).append("]Captured by ").append(data.getPlayer(team.location.controller).name);
+            }else{
+                message.append("<Unknown>");
             }
+
+            Call.onInfoToast(event.player.con, message.toString(), 0.8f);
         });
 
         TeamAssigner prev = netServer.assigner;
@@ -248,6 +258,8 @@ public class HexedMod extends Plugin{
             Log.info("Time until round ends: &lc{0} minutes", (int)(roundTime - counter) / 60 / 60);
         });
 
+        handler.register("end", "End the game.", args -> endGame());
+
         handler.register("r", "Restart the server.", args -> System.exit(2));
     }
 
@@ -274,12 +286,32 @@ public class HexedMod extends Plugin{
             }
         });
 
-        handler.<Player>register("leaderboard", "Dispay the leaderboard", (args, player) -> {
+        handler.<Player>register("leaderboard", "Display the leaderboard", (args, player) -> {
             player.sendMessage(getLeaderboard());
+        });
+
+        handler.<Player>register("hexstatus", "Get hex status at your position.", (args, player) -> {
+            Hex hex = data.data(player).location;
+            if(hex != null){
+                hex.updateController();
+                StringBuilder builder = new StringBuilder();
+                builder.append("| [lightgray]Hex #").append(hex.id).append("[]\n");
+                builder.append("| [lightgray]Owner:[] ").append(hex.controller != null && data.getPlayer(hex.controller) != null ? data.getPlayer(hex.controller).name : "<none>").append("\n");
+                for(TeamData data : state.teams.getActive()){
+                    if(hex.getProgressPercent(data.team) > 0){
+                        builder.append("|> [accent]").append(this.data.getPlayer(data.team).name).append("[lightgray]: ").append((int)hex.getProgressPercent(data.team)).append("% captured\n");
+                    }
+                }
+                player.sendMessage(builder.toString());
+            }else{
+                player.sendMessage("[scarlet]No hex found.");
+            }
         });
     }
 
     void endGame(){
+        if(restarting) return;
+
         restarting = true;
         Array<Player> players = data.getLeaderboard();
         StringBuilder builder = new StringBuilder();

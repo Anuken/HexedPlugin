@@ -24,12 +24,14 @@ public class HexData{
 
     public void updateStats(){
         teamMap.clear();
+        for(Player player : playerGroup.all()){
+            teamMap.put(player.getTeam().id, player);
+        }
         for(Array<Hex> arr : control.values()){
             arr.clear();
         }
 
         for(Player player : playerGroup.all()){
-            teamMap.put(player.getTeam().id, player);
             HexTeam team = data(player);
             Hex newHex = hexes.min(h -> player.dst2(h.wx, h.wy));
             if(team.location != newHex){
@@ -39,8 +41,8 @@ public class HexData{
                 Events.fire(new HexMoveEvent(player));
             }
             float currPercent = newHex.getProgressPercent(player.getTeam());
-            int lp = (int)(team.progressPercent / 10);
-            int np = (int)(currPercent / 10);
+            int lp = (int)(team.progressPercent);
+            int np = (int)(currPercent);
             team.progressPercent = currPercent;
             if(np != lp){
                 Events.fire(new ProgressIncreaseEvent(player, currPercent));
