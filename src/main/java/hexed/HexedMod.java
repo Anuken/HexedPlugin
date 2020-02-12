@@ -114,7 +114,7 @@ public class HexedMod extends Plugin{
 
                 if(interval.get(timerWinCheck, 60 * 2)){
                     Array<Player> players = data.getLeaderboard();
-                    if(!players.isEmpty() && data.getControlled(players.first()).size >= winCondition && players.size > 1 && data.getControlled(players.get(1)).size <= 2){
+                    if(!players.isEmpty() && data.getControlled(players.first()).size >= winCondition && players.size > 1 && data.getControlled(players.get(1)).size <= 1){
                         endGame();
                     }
                 }
@@ -178,42 +178,11 @@ public class HexedMod extends Plugin{
             data.data(event.player).lastMessage.reset();
         });
 
-        Events.on(ProgressIncreaseEvent.class, event -> {
-            HexTeam team = data.data(event.player);
-            if(team.location.controller == event.player.getTeam() || !team.lastMessage.get()) return;
+        Events.on(ProgressIncreaseEvent.class, event -> updateText(event.player));
 
-            Call.onInfoToast(event.player.con, "[white]Hex #" + team.location.id + (team.location.controller != null ? "\n[scarlet][[CONTESTED]" : "\n[lightgray]Capture progress: [accent]" + (int)(team.progressPercent) + "%"), 2f);
-            team.lastMessage.reset();
-        });
+        Events.on(HexCaptureEvent.class, event -> updateText(event.player));
 
-        Events.on(HexCaptureEvent.class, event -> {
-            Call.onInfoToast(event.player.con, "[yellow]Hex #" + event.hex.id + ": [[CAPTURED]", 3f);
-            data.data(event.player).lastMessage.reset();
-        });
-
-        Events.on(HexMoveEvent.class, event -> {
-            HexTeam team = data.data(event.player);
-
-            StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + "\n");
-
-            if(!team.lastMessage.get()) return;
-
-            if(team.location.controller == null){
-                if(team.progressPercent > 0){
-                    message.append("[lightgray]Capture progress: [accent]").append((int)(team.progressPercent)).append("%");
-                }else{
-                    message.append("[lightgray][[Empty]");
-                }
-            }else if(team.location.controller == event.player.getTeam()){
-                message.append("[yellow][[Captured]");
-            }else if(team.location != null && team.location.controller != null && data.getPlayer(team.location.controller) != null){
-                message.append("[#").append(team.location.controller.color).append("]Captured by ").append(data.getPlayer(team.location.controller).name);
-            }else{
-                message.append("<Unknown>");
-            }
-
-            Call.onInfoToast(event.player.con, message.toString(), 0.8f);
-        });
+        Events.on(HexMoveEvent.class, event -> updateText(event.player));
 
         TeamAssigner prev = netServer.assigner;
         netServer.assigner = (player, players) -> {
@@ -233,6 +202,30 @@ public class HexedMod extends Plugin{
                 return prev.assign(player, players);
             }
         };
+    }
+
+    void updateText(Player player){
+        HexTeam team = data.data(player);
+
+        StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + "\n");
+
+        if(!team.lastMessage.get()) return;
+
+        if(team.location.controller == null){
+            if(team.progressPercent > 0){
+                message.append("[lightgray]Capture progress: [accent]").append((int)(team.progressPercent)).append("%");
+            }else{
+                message.append("[lightgray][[Empty]");
+            }
+        }else if(team.location.controller == player.getTeam()){
+            message.append("[yellow][[Captured]");
+        }else if(team.location != null && team.location.controller != null && data.getPlayer(team.location.controller) != null){
+            message.append("[#").append(team.location.controller.color).append("]Captured by ").append(data.getPlayer(team.location.controller).name);
+        }else{
+            message.append("<Unknown>");
+        }
+
+        Call.setHudText(player.con, message.toString());
     }
 
     @Override
