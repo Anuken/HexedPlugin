@@ -5,6 +5,7 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
+import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.*;
@@ -50,18 +51,18 @@ public class Hex{
     }
 
     public boolean hasCore(){
-        return world.tile(x, y).getTeam() != Team.derelict && world.tile(x, y).block() instanceof CoreBlock;
+        return world.tile(x, y).team() != Team.derelict && world.tile(x, y).block() instanceof CoreBlock;
     }
 
     public @Nullable Team findController(){
         if(hasCore()){
-            return world.tile(x, y).getTeam();
+            return world.tile(x, y).team();
         }
 
         Arrays.fill(progress, 0);
-        unitGroup.intersect(wx - rad, wy - rad, rad*2, rad*2).each(e -> {
+        Groups.unit.intersect(wx - rad, wy - rad, rad*2, rad*2).each(e -> {
             if(contains(e.x, e.y)){
-                progress[e.getTeam().id] += e.health / 10f;
+                progress[e.team.id] += e.health / 10f;
             }
         });
 
@@ -70,7 +71,7 @@ public class Hex{
                 Tile tile = world.tile(cx, cy);
                 if(tile != null && tile.synthetic() && contains(tile) && tile.block().requirements != null){
                     for(ItemStack stack : tile.block().requirements){
-                        progress[tile.getTeam().id] += stack.amount * stack.item.cost;
+                        progress[tile.team().id] += stack.amount * stack.item.cost;
                     }
                 }
             }

@@ -4,20 +4,35 @@ version '1.0'
 
 sourceCompatibility = 1.8
 
+sourceSets.main.java.srcDirs = ["src"]
+
 repositories{
     mavenCentral()
     maven{ url 'https://www.jitpack.io' }
 }
 
 dependencies{
-    def version = "v104.6"
+    def version = "v107"
     compileOnly "com.github.Anuken.Arc:arc-core:$version"
     compileOnly "com.github.Anuken.Mindustry:core:$version"
 }
 
+allprojects{
+    tasks.withType(JavaCompile){
+        if(JavaVersion.current() != JavaVersion.VERSION_1_8){
+            options.compilerArgs.addAll(['--release', '8'])
+        }
+    }
+}
+
 jar{
-    version = null
+    archiveFileName = "${project.archivesBaseName}.jar"
+
     from{
         configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
+    }
+
+    from(rootDir){
+        include "plugin.hjson"
     }
 }
