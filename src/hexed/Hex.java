@@ -1,7 +1,6 @@
 package hexed;
 
 import arc.math.geom.*;
-import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;

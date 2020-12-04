@@ -359,7 +359,7 @@ public class HexedMod extends Plugin{
             }
             if(tile.block() instanceof CoreBlock){
                 for(ItemStack stack : state.rules.loadout){
-                    Call.transferItemTo(stack.item, stack.amount, tile.drawx(), tile.drawy(), tile.build);
+                    Call.setItem(tile.build, stack.item, stack.amount);
                 }
             }
         });

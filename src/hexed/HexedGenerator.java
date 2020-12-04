@@ -63,13 +63,13 @@ public class HexedGenerator implements Cons<Tiles>{
                 for(GenerateFilter f : ores){
                     in.floor = Blocks.stone;
                     in.block = wall;
-                    in.ore = ore;
+                    in.overlay = ore;
                     in.x = x;
                     in.y = y;
                     in.width = in.height = Hex.size;
                     f.apply(in);
-                    if(in.ore != Blocks.air){
-                        ore = in.ore;
+                    if(in.overlay != Blocks.air){
+                        ore = in.overlay;
                     }
                 }
 

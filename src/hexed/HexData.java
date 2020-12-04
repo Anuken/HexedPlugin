@@ -3,7 +3,6 @@ package hexed;
 import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.game.*;
 import mindustry.gen.*;
