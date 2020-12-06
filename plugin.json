@@ -1,0 +1,7 @@
+{
+  "name": "customHexPlugin",
+  "author": "alex",
+  "main": "example.customHexPlugin",
+  "description": "A hex plugin to demonstrate some basic features.",
+  "version": 1.0
+}
