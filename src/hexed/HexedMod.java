@@ -230,7 +230,7 @@ public class HexedMod extends Plugin{
         });
 
         handler.register("countdown", "Get the hexed restart countdown.", args -> {
-            Log.info("Time until round ends: &lc{0} minutes", (int)(roundTime - counter) / 60 / 60);
+            Log.info("Time until round ends: &lc@ minutes", (int)(roundTime - counter) / 60 / 60);
         });
 
         handler.register("end", "End the game.", args -> endGame());
