@@ -54,6 +54,7 @@ public class HexedMod extends Plugin{
 
     @Override
     public void init(){
+        //TODO these should probably be configurable?
         rules.pvp = true;
         rules.tags.put("hexed", "true");
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
@@ -61,7 +62,7 @@ public class HexedMod extends Plugin{
         rules.buildSpeedMultiplier = 1f / 2f;
         rules.blockHealthMultiplier = 1.2f;
         rules.unitBuildSpeedMultiplier = 1f;
-        rules.enemyCoreBuildRadius = (Hex.diameter - 1) * tilesize / 2f;
+        rules.polygonCoreProtection = true;
         rules.unitDamageMultiplier = 1.1f;
         rules.canGameOver = false;
 

@@ -39,8 +39,7 @@ public class HexedGenerator implements Cons<Tiles>{
 
     @Override
     public void get(Tiles tiles){
-        Simplex t = new Simplex(Mathf.random(0, 10000));
-        Simplex e = new Simplex(Mathf.random(0, 10000));
+        int seed1 = Mathf.random(0, 10000), seed2 = Mathf.random(0, 10000);
         Seq<GenerateFilter> ores = new Seq<>();
         maps.addDefaultOres(ores);
         ores.each(o -> ((OreFilter)o).threshold -= 0.05f);
@@ -53,8 +52,8 @@ public class HexedGenerator implements Cons<Tiles>{
 
         for(int x = 0; x < width; x++){
             for(int y = 0; y < height; y++){
-                int temp = Mathf.clamp((int)((t.octaveNoise2D(12, 0.6, 1.0 / 400, x, y) - 0.5) * 10 * blocks.length), 0, blocks.length-1);
-                int elev = Mathf.clamp((int)(((e.octaveNoise2D(12, 0.6, 1.0 / 700, x, y) - 0.5) * 10 + 0.15f) * blocks[0].length), 0, blocks[0].length-1);
+                int temp = Mathf.clamp((int)((Simplex.noise2d(seed1, 12, 0.6, 1.0 / 400, x, y) - 0.5) * 10 * blocks.length), 0, blocks.length-1);
+                int elev = Mathf.clamp((int)(((Simplex.noise2d(seed2, 12, 0.6, 1.0 / 700, x, y) - 0.5) * 10 + 0.15f) * blocks[0].length), 0, blocks[0].length-1);
 
                 Block floor = floors[temp][elev];
                 Block wall = blocks[temp][elev];
