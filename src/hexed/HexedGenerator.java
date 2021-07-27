@@ -47,6 +47,7 @@ public class HexedGenerator implements Cons<Tiles>{
             ore = Blocks.oreScrap;
             scl += 2 / 2.1F;
         }});
+        ores.each(GenerateFilter::randomize);
         GenerateInput in = new GenerateInput();
         IntSeq hex = getHex();
 
