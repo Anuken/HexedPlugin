@@ -86,7 +86,10 @@ public class HexedGenerator implements Cons<Tiles>{
                     tile.setBlock(Blocks.air);
                 }
             });
-            Angles.circle(3, 360f / 3 / 2f - 90, f -> {
+            float angle = 360f / 3 / 2f - 90;
+            for(int a = 0; a < 3; a++){
+                float f = a * 120f + angle;
+
                 Tmp.v1.trnsExact(f, Hex.spacing + 12);
                 if(Structs.inBounds(x + (int)Tmp.v1.x, y + (int)Tmp.v1.y, width, height)){
                     Tmp.v1.trnsExact(f, Hex.spacing / 2 + 7);
@@ -94,7 +97,7 @@ public class HexedGenerator implements Cons<Tiles>{
                         Geometry.circle(cx, cy, width, height, 3, (c2x, c2y) -> tiles.getn(c2x, c2y).setBlock(Blocks.air));
                     });
                 }
-            });
+            }
         }
 
         for(int x = 0; x < width; x++){

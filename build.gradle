@@ -12,9 +12,8 @@ repositories{
 }
 
 dependencies{
-    def version = "v131"
-    compileOnly "com.github.Anuken.Arc:arc-core:$version"
-    compileOnly "com.github.Anuken.Mindustry:core:$version"
+    compileOnly "com.github.Anuken.Arc:arc-core:v138"
+    compileOnly("com.github.Anuken.MindustryJitpack:core:030e9a6bef")
 }
 
 allprojects{
