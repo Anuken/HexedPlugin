@@ -2,7 +2,7 @@ apply plugin: "java"
 
 version '1.0'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_16
 
 sourceSets.main.java.srcDirs = ["src"]
 
@@ -12,8 +12,15 @@ repositories{
 }
 
 dependencies{
-    compileOnly "com.github.Anuken.Arc:arc-core:v138"
-    compileOnly("com.github.Anuken.MindustryJitpack:core:030e9a6bef")
+    compileOnly "com.github.Anuken.Arc:arc-core:v144"
+    compileOnly("com.github.Anuken.MindustryJitpack:core:v144")
+    annotationProcessor "com.github.Anuken:jabel:93fde537c7"
+}
+
+allprojects{
+    tasks.withType(JavaCompile){
+        options.compilerArgs.addAll(['--release', '8'])
+    }
 }
 
 allprojects{
