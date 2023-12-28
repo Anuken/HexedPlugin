@@ -29,7 +29,7 @@ public class HexedMod extends Plugin{
     //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
     //item requirement to captured a hex
-    public static final int itemRequirement = 1510;
+    public static final int itemRequirement = 5510;
 
     public static final int messageTime = 1;
     //in ticks: 60 minutes
@@ -49,7 +49,7 @@ public class HexedMod extends Plugin{
     private HexData data;
     private boolean restarting = false, registered = false;
 
-    private Schematic start;
+    private Schematic start,start1,midgamestart;
     private double counter = 0f;
     private int lastMin;
 
@@ -91,6 +91,7 @@ public class HexedMod extends Plugin{
         rules.coreDestroyClear = true;
         rules.coreCapture = true;
         rules.hideBannedBlocks = true;
+        rules.loadout = ItemStack.list(Items.copper, 600, Items.lead, 600, Items.graphite, 100, Items.metaglass, 100, Items.silicon, 50, Items.thorium,20,Items.plastanium, 20,Items.titanium, 20,Items.phaseFabric,5);
         //for further configuration, use `ruless add <name> <value...>`
         /*
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
@@ -101,7 +102,10 @@ public class HexedMod extends Plugin{
         rules.unitDamageMultiplier = 1.1f;
         */
         rules.unitDamageMultiplier = 1.5f;
-        start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+        //old
+        // start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+        start1 = Schematics.readBase64("bXNjaAF4nFWSXW6kMBCE2zZgG8j+aC+QC/CSi+wZHMZaITH2CJhEOXnewnZ15yEZifmwu6rcNNBAPy01JV0zdc9pz49PNFzyPm/L7VhqIXqgP8dypLLcr9NrWtdpTdu/TA/fNinMtbzkt7qRS9tMv271NW9TqZf8qR/2yjfTLZW80rjlW1p4VZdykN/ndBx5o3GuW57KfV7zfaffXxyfId01lwsLw72sNeHOP4v1jYj+8kWGrGE4slg1ZMGOZOkVgeQXVTmocsQKa+sYjpxliM+oz8CH2kAOyh8wwGobVINjmWVBPE/qTSv3rmM0KmzRitVIq5EWkahxKzD3aMRqK1YPcNhpEUUOaMgFjvIkTYqkgSQin2zPq4bMwH99yxqD/ZHJGyJuIR4ZHAT0eJhWax1qA6OBlUsdXwb7UvbSHMOgW4/W0EiPxjym0jBGnoM9z/Pj/GC+G9jEjaELZA6BQwVeEbTGc+gYfGrLkEEHtUc9POJwnrEMhCHvN2pY1LCIMNSiKgdVjpoiYT0+DysPKPCKoDX+IP4DZRpQpQ==");
+        midgamestart =Schematics.readBase64("bXNjaAF4nE2Ra27CMBCEN05InAe09AS9QM7SM5hg0UjBRiYUcfH+LN3JgESkZLz2zpfdtbTyZqQI7uil27mz/zyO+wOidu/PQxpP8xiDyFq6+Tum8XLsr26a5OM16ieXDl628zi7gM0hhh9/i0lylwaphtswxeDl/RSvPvUh7v3D0p6jLvqTC36SLvmTGzWKY5ilG2LyfbgMk7+cZfuS+PCWRx/2Pom9hCk6rKqdm2efbiLyJXyyx6tPzlUhYlRKSkWxTKmZ21BaSicZdP3EKSjDa1QWSkZKRkoGSqFxiwhwWeHULqa81LVqpVKgJKOn+jFEGaIMUUZRJlNZP+pH2TnskEKZaq6ETaF6/ChvNFJ0q58GbIP9jlkblrN0tQIBsrS74lnJxkspYFVWqcc59jfCRoGx3KpgheikUEhns/vf/TfHWBeaZXNWcw2koliMxaK5SqUBynLalr+pn9ex4hAWe017DTtSaoykhg9RR8OG92coOaWgLLCGsIawhrU0SllE7f9tPU+n");
 
         Events.run(Trigger.update, () -> {
             if(active()){
@@ -182,7 +186,7 @@ public class HexedMod extends Plugin{
             Seq<Hex> copy = data.hexes().copy();
             // filter for the hexes at the edges
             copy.shuffle();
-            Hex hex = copy.find(h -> h.controller == null && h.spawnTime.get());
+            Hex hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_edge(h.id));
 
             if(hex != null){
                 loadout(event.player, hex.x, hex.y);
@@ -220,6 +224,14 @@ public class HexedMod extends Plugin{
                 return prev.assign(player, players);
             }
         };
+    }
+
+    private boolean h_id_is_edge(int id) {
+        int[] array = new int[]{ 1,4,10,26,40,54,51,45,29,15};
+        for (int a : array) {
+            if (a==id) return true;
+        }
+        return false;
     }
 
     void updateText(Player player){
@@ -389,6 +401,14 @@ public class HexedMod extends Plugin{
         }
     }
     void loadout(Player player, int x, int y){
+        boolean midgamemode;
+        if (lastMin <= roundTime/60/60/2){ // half of roundTime
+            start = midgamestart;
+            midgamemode=true;
+        }else{
+            midgamemode = false;
+            start=start1;
+        }
         Stile coreTile = start.tiles.find(s -> s.block instanceof CoreBlock);
         if(coreTile == null) throw new IllegalArgumentException("Schematic has no core tile. Exiting.");
         int ox = x - coreTile.x, oy = y - coreTile.y;
@@ -407,7 +427,11 @@ public class HexedMod extends Plugin{
             }
             if(tile.block() instanceof CoreBlock){
                 for(ItemStack stack : state.rules.loadout){
-                    Call.setItem(tile.build, stack.item, stack.amount);
+                    if(midgamemode){
+                        Call.setItem(tile.build, stack.item, stack.amount+500);
+                    }else {
+                        Call.setItem(tile.build, stack.item, stack.amount);
+                    }
                 }
             }
         });
