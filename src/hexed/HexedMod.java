@@ -77,6 +77,15 @@ public class HexedMod extends Plugin{
                 Blocks.pyrolysisGenerator,Blocks.fluxReactor,Blocks.neoplasiaReactor);
         // beam node, beam tower, turbine condenser, chemical combustion chamber, pyro lysis generator, flux reactor, neoplasia reactor
         //
+        rules.bannedBlocks.addAll(Blocks.message,Blocks.switchBlock , Blocks.microProcessor,Blocks.logicProcessor,Blocks.hyperProcessor,
+                Blocks.memoryCell,Blocks.memoryBank,Blocks.logicDisplay,Blocks.largeLogicDisplay,Blocks.canvas,Blocks.reinforcedMessage
+        );
+        rules.bannedBlocks.addAll(Blocks.tankAssembler,Blocks.tankFabricator,Blocks.tankRefabricator,
+                Blocks.shipAssembler,Blocks.shipFabricator,Blocks.shipRefabricator,
+                Blocks.mechAssembler,Blocks.mechFabricator,Blocks.mechRefabricator,
+                Blocks.primeRefabricator,Blocks.basicAssemblerModule,Blocks.unitRepairTower,Blocks.reinforcedPayloadConveyor,Blocks.reinforcedPayloadRouter,
+                Blocks.payloadMassDriver,Blocks.largePayloadMassDriver,Blocks.deconstructor,Blocks.smallDeconstructor,Blocks.constructor,Blocks.smallDeconstructor,Blocks.payloadLoader,
+                Blocks.payloadUnloader,Blocks.largeConstructor);
         rules.planet = Planets.serpulo;
         //rules.bannedBlocks = new ObjectSet<>({Blocks.foreshadow,Blocks.foreshadow});
         rules.coreDestroyClear = true;
