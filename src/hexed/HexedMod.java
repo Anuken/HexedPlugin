@@ -29,7 +29,7 @@ public class HexedMod extends Plugin{
     //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
     //item requirement to captured a hex
-    public static final int itemRequirement = 610;
+    public static final int itemRequirement = 810;
 
     public static final int messageTime = 1;
     //in ticks: 60 minutes
@@ -60,7 +60,20 @@ public class HexedMod extends Plugin{
         rules.canGameOver = false;
         rules.polygonCoreProtection = false;
         rules.enemyCoreBuildRadius = 35f*8;
-
+        rules.bannedBlocks = new ObjectSet<>();
+        rules.bannedBlocks.addAll(Blocks.ripple,Blocks.breach);
+        rules.bannedBlocks.addAll(Blocks.diffuse ,Blocks.sublimate ,Blocks.titan ,Blocks.disperse ,Blocks.afflict ,Blocks.lustre ,Blocks.scathe ,Blocks.smite ,Blocks.malign);
+        // diffuse sublimate titan disperse afflict lustre scathe smite malign
+        rules.bannedBlocks.addAll(Blocks.ventCondenser, Blocks.cliffCrusher,Blocks.plasmaBore, Blocks.largePlasmaBore,
+                Blocks.impactDrill,Blocks.eruptionDrill);
+        // vent condenser, cliff crusher , plasma bore, large plasma bore, impact drill, eruption drill
+        rules.bannedBlocks.addAll(Blocks.buildTower,Blocks.regenProjector,Blocks.shockwaveTower,Blocks.coreBastion,
+                Blocks.coreAcropolis,Blocks.coreCitadel,Blocks.reinforcedContainer,Blocks.reinforcedVault);
+        // build tower, regen projector, shockwave tower, bastion, citadel, acropolis, reinforced container , reinforced vault
+        rules.bannedBlocks.addAll(Blocks.beamNode,Blocks.beamTower,Blocks.turbineCondenser,Blocks.chemicalCombustionChamber,
+                Blocks.pyrolysisGenerator,Blocks.fluxReactor,Blocks.neoplasiaReactor);
+        // beam node, beam tower, turbine condenser, chemical combustion chamber, pyrolysis generator, flux reactor, neoplasia reactor
+        //
         rules.planet = Planets.serpulo;
         //rules.bannedBlocks = new ObjectSet<>({Blocks.foreshadow,Blocks.foreshadow});
         rules.coreDestroyClear = true;
@@ -138,6 +151,8 @@ public class HexedMod extends Plugin{
                     //update state
                     hex.spawnTime.reset();
                     hex.updateController();
+                    // todo destroy all the blocks within the tile
+                    clearTilesInHex(hex);
                 }
             }
         });
@@ -349,7 +364,17 @@ public class HexedMod extends Plugin{
             }
         }
     }
-
+    // add kill tiles in hex
+    void clearTilesInHex(Hex hex){
+        for(int x = 0; x < world.width(); x++){
+            for(int y = 0; y < world.height(); y++){
+                Tile tile = world.tile(x, y);
+                if( tile.build != null && (!(tile.block() instanceof CoreBlock)) && hex.contains(tile)){
+                    Time.run(Mathf.random(60f * 6), tile.build::kill);
+                }
+            }
+        }
+    }
     void loadout(Player player, int x, int y){
         Stile coreTile = start.tiles.find(s -> s.block instanceof CoreBlock);
         if(coreTile == null) throw new IllegalArgumentException("Schematic has no core tile. Exiting.");
