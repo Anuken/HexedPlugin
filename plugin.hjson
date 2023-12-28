@@ -1,6 +1,7 @@
-name: "Hexed",
-author: "Anuke",
+name: "Hexedalex",
+author: "alex",
 description: "A battle-royale-like gamemode.",
-version: 0.9
-minGameVersion: 144
+version: 1.9,
+main: "hexed.HexedMod",
+minGameVersion: 146
 

@@ -17,6 +17,7 @@ import mindustry.mod.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.*;
 
 import static arc.util.Log.*;
@@ -28,11 +29,11 @@ public class HexedMod extends Plugin{
     //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
     //item requirement to captured a hex
-    public static final int itemRequirement = 210;
+    public static final int itemRequirement = 610;
 
     public static final int messageTime = 1;
     //in ticks: 60 minutes
-    private final static int roundTime = 60 * 60 * 90;
+    private final static int roundTime = 60 * 60 * 40;
     //in ticks: 3 minutes
     private final static int leaderboardTime = 60 * 60 * 2;
 
@@ -57,8 +58,13 @@ public class HexedMod extends Plugin{
         rules.pvp = true;
         rules.tags.put("hexed", "true");
         rules.canGameOver = false;
-        rules.polygonCoreProtection = true;
+        rules.polygonCoreProtection = false;
+        rules.enemyCoreBuildRadius = 35f*8;
 
+        rules.planet = Planets.serpulo;
+        //rules.bannedBlocks = new ObjectSet<>({Blocks.foreshadow,Blocks.foreshadow});
+        rules.coreDestroyClear = true;
+        rules.coreCapture = true;
         //for further configuration, use `ruless add <name> <value...>`
         /*
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
@@ -68,7 +74,7 @@ public class HexedMod extends Plugin{
         rules.unitBuildSpeedMultiplier = 1f;
         rules.unitDamageMultiplier = 1.1f;
         */
-
+        rules.unitDamageMultiplier = 1.5f;
         start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
 
         Events.run(Trigger.update, () -> {
@@ -146,6 +152,7 @@ public class HexedMod extends Plugin{
             if(!active() || event.player.team() == Team.derelict) return;
 
             Seq<Hex> copy = data.hexes().copy();
+            // filter for the hexes at the edges
             copy.shuffle();
             Hex hex = copy.find(h -> h.controller == null && h.spawnTime.get());
 
@@ -165,7 +172,6 @@ public class HexedMod extends Plugin{
         Events.on(ProgressIncreaseEvent.class, event -> updateText(event.player));
 
         Events.on(HexCaptureEvent.class, event -> updateText(event.player));
-
         Events.on(HexMoveEvent.class, event -> updateText(event.player));
 
         TeamAssigner prev = netServer.assigner;

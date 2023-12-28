@@ -23,10 +23,10 @@ public class HexedGenerator implements Cons<Tiles>{
     // v
     Block[][] floors = {
         {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.grass},
-        {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass},
-        {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.shale},
-        {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.moss, Blocks.moss, Blocks.sporeMoss, Blocks.stone},
-        {Blocks.ice, Blocks.iceSnow, Blocks.snow, Blocks.dacite, Blocks.hotrock, Blocks.salt}
+        {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.sand, Blocks.grass},
+        {Blocks.darksandWater, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.sand, Blocks.sand},
+        {Blocks.darksandTaintedWater, Blocks.darksandTaintedWater, Blocks.sand, Blocks.moss, Blocks.moss, Blocks.sand},
+        {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.tar, Blocks.sand}
     };
 
     Block[][] blocks = {
@@ -42,7 +42,15 @@ public class HexedGenerator implements Cons<Tiles>{
         int seed1 = Mathf.random(0, 10000), seed2 = Mathf.random(0, 10000);
         Seq<GenerateFilter> ores = new Seq<>();
         maps.addDefaultOres(ores);
-        ores.each(o -> ((OreFilter)o).threshold -= 0.05f);
+        ores.each(o -> {
+
+            if (((OreFilter) o).ore == Blocks.oreCoal){
+                //((OreFilter) o).threshold -= 0.5f;// this is for larger patches
+                ((OreFilter) o).threshold -= 0.09f;
+            }else{
+                ((OreFilter) o).threshold -= 0.09f;
+            }
+        });
         ores.insert(0, new OreFilter(){{
             ore = Blocks.oreScrap;
             scl += 2 / 2.1F;
@@ -53,10 +61,13 @@ public class HexedGenerator implements Cons<Tiles>{
 
         for(int x = 0; x < width; x++){
             for(int y = 0; y < height; y++){
-                int temp = Mathf.clamp((int)((Simplex.noise2d(seed1, 12, 0.6, 1.0 / 400, x, y) - 0.5) * 10 * blocks.length), 0, blocks.length-1);
-                int elev = Mathf.clamp((int)(((Simplex.noise2d(seed2, 12, 0.6, 1.0 / 700, x, y) - 0.5) * 10 + 0.15f) * blocks[0].length), 0, blocks[0].length-1);
+                int temp = Mathf.clamp((int)((Simplex.noise2d(seed1, 11, 0.6, 1.0 / 50, x, y) - 0.5) * 10 * blocks.length), 0, blocks.length-1);
+                int elev = Mathf.clamp((int)(((Simplex.noise2d(seed2, 3, 0.6, 1.0 / 100, x, y) - 0.5) * 10 + 0.15f) * blocks[0].length), 0, blocks[0].length-1);
 
                 Block floor = floors[temp][elev];
+                if ((floor==Blocks.tar || floor==Blocks.grass) && Mathf.randomBoolean(0.8f)){
+                    floor = Blocks.sand;
+                }
                 Block wall = blocks[temp][elev];
                 Block ore = Blocks.air;
 
@@ -121,7 +132,7 @@ public class HexedGenerator implements Cons<Tiles>{
             }
         }
 
-        state.map = new Map(StringMap.of("name", "Hex"));
+        state.map = new Map(StringMap.of("name", "HexAlex"));
     }
 
     public IntSeq getHex(){

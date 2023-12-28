@@ -4,8 +4,12 @@ import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.content.Blocks;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.world.Tile;
+
+import static mindustry.Vars.world;
 
 public class HexData{
     /** All hexes on the map. No order. */
@@ -134,6 +138,8 @@ public class HexData{
         public HexCaptureEvent(Player player, Hex hex){
             this.player = player;
             this.hex = hex;
+            Tile tile = world.tile(hex.x, hex.y);
+            tile.setNet(Blocks.coreShard, player.team(), 0);
         }
     }
 
