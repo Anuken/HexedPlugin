@@ -70,7 +70,8 @@ public class Hex{
                 Tile tile = world.tile(cx, cy);
                 if(tile != null && tile.synthetic() && contains(tile) && tile.block().requirements != null){
                     for(ItemStack stack : tile.block().requirements){
-                        progress[tile.team().id] += stack.amount * stack.item.cost;
+                        // progress[tile.team().id] += stack.amount * stack.item.cost;
+                        progress[tile.team().id] += stack.amount;
                     }
                 }
             }

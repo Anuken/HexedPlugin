@@ -29,7 +29,7 @@ public class HexedMod extends Plugin{
     //health requirement needed to capture a hex; no longer used
     public static final float healthRequirement = 3500;
     //item requirement to captured a hex
-    public static final int itemRequirement = 810;
+    public static final int itemRequirement = 1510;
 
     public static final int messageTime = 1;
     //in ticks: 60 minutes
@@ -62,22 +62,26 @@ public class HexedMod extends Plugin{
         rules.enemyCoreBuildRadius = 35f*8;
         rules.bannedBlocks = new ObjectSet<>();
         rules.bannedBlocks.addAll(Blocks.ripple,Blocks.breach);
+        // default rules to run in console:
+        //rules add bannedBlocks [switch ,message ,micro-processor ,logic-processor ,hyper-processor ,logic-display ,large-logic-display ,canvas]
         rules.bannedBlocks.addAll(Blocks.diffuse ,Blocks.sublimate ,Blocks.titan ,Blocks.disperse ,Blocks.afflict ,Blocks.lustre ,Blocks.scathe ,Blocks.smite ,Blocks.malign);
         // diffuse sublimate titan disperse afflict lustre scathe smite malign
-        rules.bannedBlocks.addAll(Blocks.ventCondenser, Blocks.cliffCrusher,Blocks.plasmaBore, Blocks.largePlasmaBore,
-                Blocks.impactDrill,Blocks.eruptionDrill);
-        // vent condenser, cliff crusher , plasma bore, large plasma bore, impact drill, eruption drill
         rules.bannedBlocks.addAll(Blocks.buildTower,Blocks.regenProjector,Blocks.shockwaveTower,Blocks.coreBastion,
                 Blocks.coreAcropolis,Blocks.coreCitadel,Blocks.reinforcedContainer,Blocks.reinforcedVault);
         // build tower, regen projector, shockwave tower, bastion, citadel, acropolis, reinforced container , reinforced vault
+
+        rules.bannedBlocks.addAll(Blocks.ventCondenser, Blocks.cliffCrusher,Blocks.plasmaBore, Blocks.largePlasmaBore,
+                Blocks.impactDrill,Blocks.eruptionDrill);
+        // vent condenser, cliff crusher , plasma bore, large plasma bore, impact drill, eruption drill
         rules.bannedBlocks.addAll(Blocks.beamNode,Blocks.beamTower,Blocks.turbineCondenser,Blocks.chemicalCombustionChamber,
                 Blocks.pyrolysisGenerator,Blocks.fluxReactor,Blocks.neoplasiaReactor);
-        // beam node, beam tower, turbine condenser, chemical combustion chamber, pyrolysis generator, flux reactor, neoplasia reactor
+        // beam node, beam tower, turbine condenser, chemical combustion chamber, pyro lysis generator, flux reactor, neoplasia reactor
         //
         rules.planet = Planets.serpulo;
         //rules.bannedBlocks = new ObjectSet<>({Blocks.foreshadow,Blocks.foreshadow});
         rules.coreDestroyClear = true;
         rules.coreCapture = true;
+        rules.hideBannedBlocks = true;
         //for further configuration, use `ruless add <name> <value...>`
         /*
         rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
