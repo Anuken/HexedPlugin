@@ -11,23 +11,16 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.WriteModel;
-import mindustry.gen.Call;
 import mindustry.gen.Player;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.*;
-import static com.mongodb.client.model.Updates.push;
-import static java.util.Collections.singletonList;
 
 
 public class MMR_mongo {
@@ -47,7 +40,7 @@ public class MMR_mongo {
 
 
 
-    public Long read_hexdataV7(Player p, Long muuid){
+    public Long read_hexdataV7(Player p, String muuid){
         try {
             Document hexv7doc = hexdataV7.find(eq("muuid", muuid)).first();
             if (hexv7doc == null) { // brand-new acc, add new doc
@@ -62,7 +55,7 @@ public class MMR_mongo {
                 hexdataV7.insertOne(doc);
                 return 1000L;
             } else {
-                return hexv7doc.getLong("MMR");
+                return hexv7doc.getLong("currMMR");
             }
         } catch (Exception e) {
             Log.info("failed to send exp gains" + e);
@@ -76,22 +69,6 @@ public class MMR_mongo {
             Log.info(modifiedCount + "mod counts" + bulkOperations.size());
         }
     }
-//    public void send_expv7gains(Player p, Long duuid, Long EXP) {
-//        try {
-//            Document expv7doc = expv7.find(eq("duuid", duuid)).first();
-//            if (expv7doc != null) {
-//                expv7.updateOne(eq("duuid", duuid),
-//                        combine(
-//                                set("EXP", EXP), // Increment field1 by 1
-//                                push("dates", new Date()), // Append "value2" to field2
-//                                push("servers", Strings.stripColors(Core.settings.getString("servername")))
-//                        )
-//                );
-//            }
-//        } catch (Exception e) {
-//            Log.info("failed to send exp gains" + e);
-//        }
-//    }
 
 //    public Document get_duuid1_doc(Player p) { // used for registering muuid to duuid, and setplayerdata
 //        try {
