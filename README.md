@@ -3,13 +3,14 @@
 ## features
 
 - players who join in the midgame gets more items and a better starting core defense.
-- simple mmr system to reward better players
+- simple mmr system to reward better players (requires mongodb atlas account)
 
 ## todo
 
 - dont update the mmr for players who joined later than 5 mins into the game.
 - collate a history of mmr so that players can see their track record.
-- 
+- allow players who disconnect to rejoin in their same team (bugged implementation)
+- (maybe) allow for team hex. (current code doesnt seem to allow this)
 
 ## how to use
 
