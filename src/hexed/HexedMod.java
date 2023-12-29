@@ -180,25 +180,26 @@ public class HexedMod extends Plugin{
 
         Events.on(PlayerLeave.class, event -> {
             if(active() && event.player.team() != Team.derelict){
-                // old ver killTiles(event.player.team());
-                PlayersWhoLeft.put(event.player.uuid(),event.player.team().id);
+                // old ver
+                killTiles(event.player.team());
+                //PlayersWhoLeft.put(event.player.uuid(),event.player.team().id);
             }
         });
 
         Events.on(PlayerJoin.class, event -> {
-            String playeruuid = event.player.uuid();
-            if(active() && PlayersWhoLeft.containsKey(playeruuid)){
-                int prevTeamid = PlayersWhoLeft.get(playeruuid);
-                Team prevTeam = Team.get(prevTeamid);
-                if (prevTeam==Team.derelict){
-                    PlayersWhoLeft.remove(playeruuid);
-                    return;
-                }
-                event.player.unit().kill();
-                event.player.team(prevTeam);
-                event.player.sendMessage("Welcome back");
-                return;
-            }
+//            String playeruuid = event.player.uuid();
+//            if(active() && PlayersWhoLeft.containsKey(playeruuid)){
+//                int prevTeamid = PlayersWhoLeft.get(playeruuid);
+//                Team prevTeam = Team.get(prevTeamid);
+//                if (prevTeam==Team.derelict){
+//                    PlayersWhoLeft.remove(playeruuid);
+//                    return;
+//                }
+//                event.player.unit().kill();
+//                event.player.team(prevTeam);
+//                event.player.sendMessage("Welcome back");
+//                return;
+//            }
             if(!active() || event.player.team() == Team.derelict) return;
 
             Seq<Hex> copy = data.hexes().copy();
