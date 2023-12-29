@@ -20,6 +20,8 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.*;
 
+import java.util.HashMap;
+
 import static arc.util.Log.*;
 import static mindustry.Vars.*;
 
@@ -52,6 +54,7 @@ public class HexedMod extends Plugin{
     private Schematic start,start1,midgamestart,worldblock;
     private double counter = 0f;
     private int lastMin;
+    public HashMap<String, Integer> PlayersWhoLeft;
 
     @Override
     public void init(){
@@ -177,11 +180,25 @@ public class HexedMod extends Plugin{
 
         Events.on(PlayerLeave.class, event -> {
             if(active() && event.player.team() != Team.derelict){
-                killTiles(event.player.team());
+                // old ver killTiles(event.player.team());
+                PlayersWhoLeft.put(event.player.uuid(),event.player.team().id);
             }
         });
 
         Events.on(PlayerJoin.class, event -> {
+            String playeruuid = event.player.uuid();
+            if(active() && PlayersWhoLeft.containsKey(playeruuid)){
+                int prevTeamid = PlayersWhoLeft.get(playeruuid);
+                Team prevTeam = Team.get(prevTeamid);
+                if (prevTeam==Team.derelict){
+                    PlayersWhoLeft.remove(playeruuid);
+                    return;
+                }
+                event.player.unit().kill();
+                event.player.team(prevTeam);
+                event.player.sendMessage("Welcome back");
+                return;
+            }
             if(!active() || event.player.team() == Team.derelict) return;
 
             Seq<Hex> copy = data.hexes().copy();
@@ -238,8 +255,8 @@ public class HexedMod extends Plugin{
 
     void updateText(Player player){
         HexTeam team = data.data(player);
-
-        StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + "\n");
+        int minsleft=(int)(roundTime - counter) / 60 / 60;
+        StringBuilder message = new StringBuilder("[white]Hex #" + team.location.id + " [teal]( "+minsleft+"mins left )\n");
 
         if(!team.lastMessage.get()) return;
 
@@ -280,6 +297,9 @@ public class HexedMod extends Plugin{
             logic.play();
             netServer.openServer();
             // set tiles here? (27,5) (28,5)
+            Log.info("world tile setting");
+            initWorldBlock();
+            Log.info("world tile set");
         });
 
         handler.register("countdown", "Get the hexed restart countdown.", args -> {
@@ -436,6 +456,19 @@ public class HexedMod extends Plugin{
                         Call.setItem(tile.build, stack.item, stack.amount);
                     }
                 }
+            }
+        });
+    }
+    void initWorldBlock(){
+        worldblock.tiles.each(st->{
+            Tile tile = world.tile(st.x + 27, st.y + 5);
+            if(tile == null) return;
+            if(tile.block() != Blocks.air){
+                tile.removeNet();
+            }
+            tile.setNet(st.block, Team.blue, st.rotation);
+            if(st.config != null){
+                tile.build.configureAny(st.config);
             }
         });
     }
