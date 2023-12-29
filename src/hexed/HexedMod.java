@@ -49,7 +49,7 @@ public class HexedMod extends Plugin{
     private HexData data;
     private boolean restarting = false, registered = false;
 
-    private Schematic start,start1,midgamestart;
+    private Schematic start,start1,midgamestart,worldblock;
     private double counter = 0f;
     private int lastMin;
 
@@ -107,6 +107,7 @@ public class HexedMod extends Plugin{
         start1 = Schematics.readBase64("bXNjaAF4nFWSXW6kMBCE2zZgG8j+aC+QC/CSi+wZHMZaITH2CJhEOXnewnZ15yEZifmwu6rcNNBAPy01JV0zdc9pz49PNFzyPm/L7VhqIXqgP8dypLLcr9NrWtdpTdu/TA/fNinMtbzkt7qRS9tMv271NW9TqZf8qR/2yjfTLZW80rjlW1p4VZdykN/ndBx5o3GuW57KfV7zfaffXxyfId01lwsLw72sNeHOP4v1jYj+8kWGrGE4slg1ZMGOZOkVgeQXVTmocsQKa+sYjpxliM+oz8CH2kAOyh8wwGobVINjmWVBPE/qTSv3rmM0KmzRitVIq5EWkahxKzD3aMRqK1YPcNhpEUUOaMgFjvIkTYqkgSQin2zPq4bMwH99yxqD/ZHJGyJuIR4ZHAT0eJhWax1qA6OBlUsdXwb7UvbSHMOgW4/W0EiPxjym0jBGnoM9z/Pj/GC+G9jEjaELZA6BQwVeEbTGc+gYfGrLkEEHtUc9POJwnrEMhCHvN2pY1LCIMNSiKgdVjpoiYT0+DysPKPCKoDX+IP4DZRpQpQ==");
         midgamestart =Schematics.readBase64("bXNjaAF4nE2Ra27CMBCEN05InAe09AS9QM7SM5hg0UjBRiYUcfH+LN3JgESkZLz2zpfdtbTyZqQI7uil27mz/zyO+wOidu/PQxpP8xiDyFq6+Tum8XLsr26a5OM16ieXDl628zi7gM0hhh9/i0lylwaphtswxeDl/RSvPvUh7v3D0p6jLvqTC36SLvmTGzWKY5ilG2LyfbgMk7+cZfuS+PCWRx/2Pom9hCk6rKqdm2efbiLyJXyyx6tPzlUhYlRKSkWxTKmZ21BaSicZdP3EKSjDa1QWSkZKRkoGSqFxiwhwWeHULqa81LVqpVKgJKOn+jFEGaIMUUZRJlNZP+pH2TnskEKZaq6ETaF6/ChvNFJ0q58GbIP9jlkblrN0tQIBsrS74lnJxkspYFVWqcc59jfCRoGx3KpgheikUEhns/vf/TfHWBeaZXNWcw2koliMxaK5SqUBynLalr+pn9ex4hAWe017DTtSaoykhg9RR8OG92coOaWgLLCGsIawhrU0SllE7f9tPU+n");
 
+        worldblock = Schematics.readBase64("bXNjaAF4nAGrA1T8AAIAAQMABG5hbWUACnRlc3RibG9ja3MAC2Rlc2NyaXB0aW9uAAAABmxhYmVscwACW10BAA93b3JsZC1wcm9jZXNzb3IAAAACAAAAAAAOAAABpniclZRLbsIwEIbppoucYsQBKps0CWHVTW/QTYVYuGBB2jihsSm0p6/jt4jDIwtgZj7/88844mEyeXzfd1UjYArqmSaMck62FFjFedU2kCZHUgnAieGWHd2slrAaJdETyhzcdqTZUsnfeoALInr8Vh7uQ+9iL8JFlnAq4I92LbyIitGk3QM/fOiM+sAIIZvtCc2pWtBo2iOs3cC6btdfGlQne/mTWfg0+TywPaQp1NLQ2440Bs88Z3Y9iuJAU615nPSqyl21qX6AB9Zsjsls7sOdTOiwn4e7Yh8xV9MoRhLHrrzDLtTKss6COsMu1G5knQd1jnWoJspKoN8HUqsuJvdcQtOKV5OOZVksyWVS39XJfEtNd3t2hdm5uAHQIgIwZcoSUeCKAo8p5H5oO0ieRqYLk7Hp/HALr7ztKBG0U+9I1P+AiYxQWIfMX0uRns09yA49ssgNFNf2V1zb37xw7qyN+eyyjdCF+bnwapfblTPTjvtllCg8NGjII3OXub11J5KH7yKKpTmO+Jk7P5HGvu/Iv6LSmKVA6iP5lbuSGhP5/AOQCe/lAAAAAQAADgAAAad4nJWSMW7cQAxFN0i3pyCcYhvDTU4QOy5cpIkDpDBcUCNKS2g0HHCoVXSbHDWcSWykCCBHjSBo5v1P/v/ucHj/Mysng6vvFIPMBCbw9GF4Pn3lC8ZTgTtZkpGiGYbp9PR8c3WcqRQcCZIYDxt8PK7I5q8/pFsaRAlWgo5GTtcQycDJ9CNH5ARnWauKf2xgZy4wY96n3kVC9fNOjRKmAk4aVPyXDLDJUpGjCzXNxGkEpSKLBir78M9UTGVr+BIUM6wYY6nMJVU5mOtIL0Qwjm/BftOtInyvHSdfQKSZkpXqe4ZH0rxEAUw93CtNrNBhoR4kVR/+if0Fkzn/DVK3C8e+sZY8Kvbkqm63ynMKSk72UfxGPfI6RzHRCg2YMbBt+zpfcCIYRXowwnkVnRoxiGjPCY3dfUe2EiXPfO5Im4e5XvOUtFAcAGF0R9YQ+5IP6eLx8IhGL93p/8qrc2XS34HdwINXjcezs6uisfeu+ovia/eiFAzKA/9XKTCB5CzJo2usRn7NplKbjbrh2sPRO74P/+Sg5MO0VcYlTP+64vHk48GfXwmERjkAZGK/uA==");
         Events.run(Trigger.update, () -> {
             if(active()){
                 data.updateStats();
@@ -168,8 +169,8 @@ public class HexedMod extends Plugin{
                     //update state
                     hex.spawnTime.reset();
                     hex.updateController();
-                    // todo destroy all the blocks within the tile
                     clearTilesInHex(hex);
+                    // todo destroy half the units in the block
                 }
             }
         });
@@ -189,6 +190,7 @@ public class HexedMod extends Plugin{
             Hex hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_edge(h.id));
 
             if(hex != null){
+                Call.infoMessage(event.player.con,"Welcome to [red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA).\nCapture cores by:\n- Building on empty tiles\n- Eliminating enemies.\n\nObjective: Most Hexes in 40mins.\n\nNote: BuildSpeed X10, Damage X2\nGL HF");
                 loadout(event.player, hex.x, hex.y);
                 Core.app.post(() -> data.data(event.player).chosen = false);
                 hex.findController();
@@ -277,6 +279,7 @@ public class HexedMod extends Plugin{
             state.rules = rules.copy();
             logic.play();
             netServer.openServer();
+            // set tiles here? (27,5) (28,5)
         });
 
         handler.register("countdown", "Get the hexed restart countdown.", args -> {
