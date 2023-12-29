@@ -47,7 +47,7 @@ public class MMR_mongo {
                 Document doc = new Document("muuid", muuid)
                         .append("musername", p.name())
                         .append("date", new Date())
-                        .append("currMMR", 0L)
+                        .append("currMMR", 1000L)
                         .append("dates", new ArrayList<>())
                         .append("losswinrank", new ArrayList<>()) // 0 for lose, then followed by rank
                         .append("hexescontrolled", new ArrayList<>())
