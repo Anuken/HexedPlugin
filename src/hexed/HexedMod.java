@@ -190,10 +190,10 @@ public class HexedMod extends Plugin{
             Hex hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_edge(h.id));
 
             if(hex != null){
-                Call.infoMessage(event.player.con,"Welcome to [red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA).\nCapture cores by:\n- Building on empty tiles\n- Eliminating enemies.\n\nObjective: Most Hexes in 40mins.\n\nNote: BuildSpeed X10, Damage X2\nGL HF");
                 loadout(event.player, hex.x, hex.y);
                 Core.app.post(() -> data.data(event.player).chosen = false);
                 hex.findController();
+                Call.infoMessage(event.player.con,"Welcome to [red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA).[]\n[lime]Capture cores by:[]\n- Building on empty tiles\n- Eliminating enemies.\n\n[lime]Objective: []Most Hexes in 40mins.\n\n[accent]Note: []BuildSpeed X10, Damage X2\n[sky]GL HF");
             }else{
                 Call.infoMessage(event.player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
                 event.player.unit().kill();
