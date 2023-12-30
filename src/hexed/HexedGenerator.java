@@ -68,6 +68,9 @@ public class HexedGenerator implements Cons<Tiles>{
                 if ((floor==Blocks.tar || floor==Blocks.grass) && Mathf.randomBoolean(0.8f)){
                     floor = Blocks.sand;
                 }
+                if ( floor==Blocks.grass && Mathf.randomBoolean(0.5f)){
+                    floor = Blocks.sand;
+                }
                 Block wall = blocks[temp][elev];
                 Block ore = Blocks.air;
 
@@ -91,6 +94,11 @@ public class HexedGenerator implements Cons<Tiles>{
         for(int i = 0; i < hex.size; i++){
             int x = Point2.x(hex.get(i));
             int y = Point2.y(hex.get(i));
+            for (int j = -3; j <= 3; j+=6) {
+                for (int k = -3; k <= 3; k+=6) {
+                    tiles.set(x+j, y+k, new Tile(x+j, y+k, Blocks.magmarock.id,  Blocks.air.id, Blocks.air.id));
+                }
+            }
             Geometry.circle(x, y, width, height, Hex.diameter, (cx, cy) -> {
                 if(Intersector.isInsideHexagon(x, y, Hex.diameter, cx, cy)){
                     Tile tile = tiles.getn(cx, cy);
@@ -132,7 +140,7 @@ public class HexedGenerator implements Cons<Tiles>{
             }
         }
 
-        state.map = new Map(StringMap.of("name", "HexAlex"));
+        state.map = new Map(StringMap.of("name", "HexRush"));
     }
 
     public IntSeq getHex(){

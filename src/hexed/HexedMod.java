@@ -209,17 +209,9 @@ public class HexedMod extends Plugin{
         });
         Events.on(EventType.Trigger.class,event->{
             if(event.equals(Trigger.newGame)){
-                Log.info("new game triggered, reloading player stats");
-                // wipe the mmr data and reload them.
-                joinedPlayers.clear();
-                allMMR.clear();
-                PlayersMMR.clear();
-                PlayersWhoLeft.clear();
-
-                for ( Player p : Groups.player ) {
-                    assign_hex_to_new_joins(p);
-                    Log.info("loading player: "+p.name);
-                }
+                Log.info("new game triggered, wiping player stats only");
+                clear_player_data();
+                // reloadplayerhex();
             }
         });
         Events.on(PlayerJoin.class, event -> {
@@ -371,7 +363,7 @@ public class HexedMod extends Plugin{
             data = new HexData();
 
             logic.reset();
-            Log.info("Generating map...");
+            Log.info("Generating map... v3");
             HexedGenerator generator = new HexedGenerator();
             world.loadGenerator(Hex.size, Hex.size, generator);
             data.initHexes(generator.getHex());
@@ -383,6 +375,7 @@ public class HexedMod extends Plugin{
             Log.info("world tile setting");
             initWorldBlock();
             Log.info("world tile set");
+            reloadplayerhex();
         });
 
         handler.register("countdown", "Get the hexed restart countdown.", args -> {
@@ -392,6 +385,22 @@ public class HexedMod extends Plugin{
         handler.register("end", "End the game.", args -> endGame());
 
         handler.register("r", "Restart the server.", args -> System.exit(2));
+    }
+    private void clear_player_data(){
+        joinedPlayers.clear();
+        allMMR.clear();
+        PlayersMMR.clear();
+        PlayersWhoLeft.clear();
+    }
+
+    private void reloadplayerhex() {
+        clear_player_data();
+        // wipe the mmr data and reload them.
+
+        for ( Player p : Groups.player ) {
+            assign_hex_to_new_joins(p);
+            Log.info("loading player: "+p.name);
+        }
     }
 
     @Override
@@ -490,7 +499,8 @@ public class HexedMod extends Plugin{
                     )
                 );
                 if (p!=null && p.con!=null){
-                    Call.infoMessage(p.con,"[sky]Your previous MMR:[] "+oldMMR+"\n[sky]Your new MMR:[] "+newMMR+"\n[sky]Average MMR in this match:[] "+avgMMR);
+                    String message =newMMR>=oldMMR? ("[green]You gained "+ (newMMR - oldMMR) +" MMR.") : ("[green]You lost "+(oldMMR-newMMR)+" MMR.");
+                    Call.infoMessage(p.con,"[sky]Your previous MMR:[] "+oldMMR+"\n"+message+"\n[sky]Your new MMR:[] "+newMMR+"\n[sky]Average MMR in this match:[] "+avgMMR);
                 }
             }
             if(!bulkOperations.isEmpty()){
@@ -498,10 +508,9 @@ public class HexedMod extends Plugin{
                 Log.info("MMR sent to db, update size: "+bulkOperations.size());
             }
         }
-
-
+        clear_player_data();
         Log.info("&ly--SERVER RESTARTING--");
-        Time.runTask(60f * 10f, () -> {
+        Time.runTask(60f * 1f, () -> { //60f * 10f is 10 seconds
             Log.info("&ly--running kick task--");
             netServer.kickAll(KickReason.serverRestarting);
             Log.info("&ly--finish kick task--");
