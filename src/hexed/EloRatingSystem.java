@@ -5,7 +5,7 @@ public class EloRatingSystem {
     // Default rating for a new player
     private static final long DEFAULT_RATING = 1500;
     // K-factor determines the maximum change per game
-    private static final long K_FACTOR = 32;
+    private static final long K_FACTOR = 100;
 
     /**
      * Calculates the new rating for a player.
