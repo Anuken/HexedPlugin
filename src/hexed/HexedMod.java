@@ -202,56 +202,40 @@ public class HexedMod extends Plugin{
         Events.on(PlayerLeave.class, event -> {
             if(active() && event.player.team() != Team.derelict){
                 // old ver
-                killTiles(event.player.team());
-                //PlayersWhoLeft.put(event.player.uuid(),event.player.team().id);
+                // killTiles(event.player.team());
+                PlayersWhoLeft.put(event.player.uuid(),event.player.team().id);
             }
         });
+        Events.on(EventType.Trigger.class,event->{
+            if(event.equals(Trigger.newGame)){
+                Log.info("new game triggered, reloading player stats");
+                // wipe the mmr data and reload them.
+                joinedPlayers.clear();
+                allMMR.clear();
+                PlayersMMR.clear();
+                PlayersWhoLeft.clear();
 
-        Events.on(PlayerJoin.class, event -> {
-//            String playeruuid = event.player.uuid();
-//            if(active() && PlayersWhoLeft.containsKey(playeruuid)){
-//                int prevTeamid = PlayersWhoLeft.get(playeruuid);
-//                Team prevTeam = Team.get(prevTeamid);
-//                if (prevTeam==Team.derelict){
-//                    PlayersWhoLeft.remove(playeruuid);
-//                    return;
-//                }
-//                event.player.unit().kill();
-//                event.player.team(prevTeam);
-//                event.player.sendMessage("Welcome back");
-//                return;
-//            }
-            if(!active() || event.player.team() == Team.derelict) return;
-
-            Seq<Hex> copy = data.hexes().copy();
-            // filter for the hexes at the edges
-            copy.shuffle();
-            Hex hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_edge(h.id));
-
-            if(hex != null){
-                loadout(event.player, hex.x, hex.y);
-                Core.app.post(() -> data.data(event.player).chosen = false);
-                hex.findController();
-                // this is for local mode Long mmr = MMRsystem.getPlayerMMR(event.player.uuid());
-                Long mmr = mmrmongo.read_hexdataV7(event.player,event.player.uuid());
-                if (!joinedPlayers.contains(event.player.uuid())){
-                    joinedPlayers.add(event.player.uuid());
-                    allMMR.add(mmr);
-                    PlayersMMR.put(event.player.uuid(),mmr);
-                    Call.infoMessage(event.player.con,"Welcome to [red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA).[]\n\n[lime]Capture cores by:[]\n- Building on empty tiles\n- Eliminating enemies.\n\n[lime]Objective: []Most Hexes in 40mins or First to 25 Hexes.\n\n[accent]Note: []BuildSpeed X10, Damage X2\n[sky]GL HF [sky]Your current MMR: []"+mmr);
+                for ( Player p : Groups.player ) {
+                    assign_hex_to_new_joins(p);
+                    Log.info("loading player: "+p.name);
                 }
-                else{
-                    Call.infoMessage(event.player.con,"Welcome back. Your core was erased, and now you have a new one.");
-                }
-                Long avgMMR = calculateAverageMMR(allMMR);
-                Call.sendMessage("[red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA)[]: [sky]Average MMR this game is[] "+avgMMR+".");
-            }else{
-                Call.infoMessage(event.player.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
-                event.player.unit().kill();
-                event.player.team(Team.derelict);
             }
-
-            data.data(event.player).lastMessage.reset();
+        });
+        Events.on(PlayerJoin.class, event -> {
+            String playeruuid = event.player.uuid();
+            if(active() && PlayersWhoLeft.containsKey(playeruuid)){
+                int prevTeamid = PlayersWhoLeft.get(playeruuid);
+                Team prevTeam = Team.get(prevTeamid);
+                if (prevTeam==Team.derelict){
+                    PlayersWhoLeft.remove(playeruuid);
+                    return;
+                }
+                event.player.unit().kill();
+                event.player.team(prevTeam);
+                event.player.sendMessage("Welcome back");
+                return;
+            }
+            assign_hex_to_new_joins(event.player);
         });
 
         Events.on(ProgressIncreaseEvent.class, event -> updateText(event.player));
@@ -261,12 +245,22 @@ public class HexedMod extends Plugin{
 
         TeamAssigner prev = netServer.assigner;
         netServer.assigner = (player, players) -> {
+            if (PlayersWhoLeft.containsKey(player.uuid())){
+                return Team.get(PlayersWhoLeft.get(player.uuid()));
+            }
             Seq<Player> arr = Seq.with(players);
-
+            Seq<Team> leftTeams = new Seq<>();
+            for (String uuid:
+                 PlayersWhoLeft.keySet()) {
+                leftTeams.add(Team.get(PlayersWhoLeft.get(uuid)));
+            }
             if(active()){
                 //pick first inactive team
                 for(Team team : Team.all){
-                    if(team.id > 5 && !team.active() && !arr.contains(p -> p.team() == team) && !data.data(team).dying && !data.data(team).chosen){
+                    if(team.id > 5 && !team.active() && !leftTeams.contains(team)
+                            && !arr.contains(p -> p.team() == team)
+                            && !data.data(team).dying
+                            && !data.data(team).chosen){
                         data.data(team).chosen = true;
                         return team;
                     }
@@ -279,8 +273,62 @@ public class HexedMod extends Plugin{
         };
     }
 
+    private void assign_hex_to_new_joins(Player p) {
+        // check if there is an existing connection
+        if(!active() || p.team() == Team.derelict) return;
+
+        Seq<Hex> copy = data.hexes().copy();
+        // filter for the hexes at the edges
+        copy.shuffle();
+        Hex hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_edge(h.id));
+        if (hex==null){
+            hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_middle(h.id));
+            if (hex==null){
+                hex = copy.find(h -> (h.controller == null) && (h.spawnTime.get()) && h_id_is_crowdededge(h.id));
+            }
+        }
+
+        if(hex != null){
+            loadout(p, hex.x, hex.y);
+            Core.app.post(() -> data.data(p).chosen = false);
+            hex.findController();
+            // this is for local mode Long mmr = MMRsystem.getPlayerMMR(p.uuid());
+            Long mmr = mmrmongo.read_hexdataV7(p,p.uuid());
+            if (!joinedPlayers.contains(p.uuid())){
+                joinedPlayers.add(p.uuid());
+                allMMR.add(mmr);
+                PlayersMMR.put(p.uuid(),mmr);
+                Call.infoMessage(p.con,"Welcome to [red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA).[]\n\n[lime]Capture cores by:[]\n- Building on empty tiles\n- Eliminating enemies.\n\n[lime]Objective: []Most Hexes in 40mins or First to 25 Hexes.\n\n[accent]Note: []BuildSpeed X5, Damage X1.2\n[sky]Your current MMR: [forest]"+mmr+" [sky]GL HF ");
+            }
+            else{
+                Call.infoMessage(p.con,"Welcome back. Your core was erased, and now you have a new one.");
+            }
+            Long avgMMR = calculateAverageMMR(allMMR);
+            Call.sendMessage("[red]A[yellow]L[teal]E[blue]X [white]| HEX [green](PRE-ALPHA)[]: [sky]Average MMR this game is[] "+avgMMR+".");
+        }else{
+            Call.infoMessage(p.con, "There are currently no empty hex spaces available.\nAssigning into spectator mode.");
+            p.unit().kill();
+            p.team(Team.derelict);
+        }
+        data.data(p).lastMessage.reset();
+    }
+
     private boolean h_id_is_edge(int id) {
-        int[] array = new int[]{ 1,4,10,26,40,54,51,45,29,15};
+        int[] array = new int[]{ 1,4,10,26,40,54,51,45,29,15 };  // at the edges
+        for (int a : array) {
+            if (a==id) return true;
+        }
+        return false;
+    }
+    private boolean h_id_is_middle(int id) {
+        int[] array = new int[]{ 22,33,18,37};//middle positions
+        for (int a : array) {
+            if (a==id) return true;
+        }
+        return false;
+    }
+    private boolean h_id_is_crowdededge(int id) {
+        int[] array = new int[]{ 6,8,49,47,11,44 };//overcrowding
         for (int a : array) {
             if (a==id) return true;
         }
@@ -417,13 +465,17 @@ public class HexedMod extends Plugin{
             List<WriteModel<Document>> bulkOperations = new ArrayList<>();
             Map<String, Integer> uuid_to_rank = data.rankNames();
             Long avgMMR = calculateAverageMMR(allMMR);
+            long totalhexes= 0;
+            for(int i = 0; i < players.size; i++) {
+                totalhexes = totalhexes + data.getControlled(players.get(i)).size;
+            }
             for( String muuid : joinedPlayers){
                 Long oldMMR = PlayersMMR.get(muuid);
                 Integer rank = uuid_to_rank.get(muuid);
                 if (rank==null) rank = 0;
                 Player p = Groups.player.find(pp -> Objects.equals(pp.uuid(), muuid));
                 int hexescontrolled = p == null ? 0 : data.getControlled(p).size;
-                Long newMMR = getNewMMR(oldMMR,avgMMR,uuid_to_rank,muuid);
+                Long newMMR = getALEXELOrank(oldMMR,avgMMR,uuid_to_rank,muuid,hexescontrolled,totalhexes,allMMR.size());
                 bulkOperations.add(
                     new UpdateOneModel<>(
                         new Document("muuid", muuid), // Filter
@@ -477,7 +529,15 @@ public class HexedMod extends Plugin{
                 newMMR = currMMR - rankpoints/2;
             }
         }
-        return max(100L,newMMR); // lowest is 100 MMR...
+        return newMMR;
+    }
+    private Long getALEXELOrank(Long currMMR, Long avgMMR,Map<String, Integer> uuid_to_rank,String muuid,
+                                long capturedhexes,long totalhexes,long totalplayers){
+        Long newMMR = getNewMMR(currMMR, avgMMR,uuid_to_rank, muuid);
+        double score = EloRatingSystem.getscore_from_hexes( capturedhexes, totalhexes, totalplayers);
+        Long elo = EloRatingSystem.calculateNewRating(currMMR,avgMMR,score);
+
+        return max(100L,(newMMR+elo)/2); // lowest is 100 MMR...
     }
 
     public static Long calculateAverageMMR(List<Long> values) {
