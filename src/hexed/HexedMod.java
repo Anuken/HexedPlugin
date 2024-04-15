@@ -1,6 +1,7 @@
 package hexed;
 
 import arc.*;
+import arc.files.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -23,6 +24,8 @@ import static arc.util.Log.*;
 import static mindustry.Vars.*;
 
 public class HexedMod extends Plugin{
+    //TODO: move these to a config file or Config
+
     //in seconds
     public static final float spawnDelay = 60 * 4;
     //health requirement needed to capture a hex; no longer used
@@ -32,13 +35,13 @@ public class HexedMod extends Plugin{
 
     public static final int messageTime = 1;
     //in ticks: 60 minutes
-    private final static int roundTime = 60 * 60 * 90;
+    public final static int roundTime = 60 * 60 * 90;
     //in ticks: 3 minutes
-    private final static int leaderboardTime = 60 * 60 * 2;
+    public final static int leaderboardTime = 60 * 60 * 2;
 
-    private final static int updateTime = 60 * 2;
+    public final static int updateTime = 60 * 2;
 
-    private final static int winCondition = 10;
+    public final static int winCondition = 10;
 
     private final static int timerBoard = 0, timerUpdate = 1, timerWinCheck = 2;
 
@@ -48,7 +51,7 @@ public class HexedMod extends Plugin{
     private HexData data;
     private boolean restarting = false, registered = false;
 
-    private Schematic start;
+    private Schematic baseSchematic;
     private double counter = 0f;
     private int lastMin;
 
@@ -59,17 +62,19 @@ public class HexedMod extends Plugin{
         rules.canGameOver = false;
         rules.polygonCoreProtection = true;
 
-        //for further configuration, use `ruless add <name> <value...>`
-        /*
-        rules.loadout = ItemStack.list(Items.copper, 300, Items.lead, 500, Items.graphite, 150, Items.metaglass, 150, Items.silicon, 150, Items.plastanium, 50);
-        rules.buildCostMultiplier = 1f;
-        rules.buildSpeedMultiplier = 1f / 2f;
-        rules.blockHealthMultiplier = 1.2f;
-        rules.unitBuildSpeedMultiplier = 1f;
-        rules.unitDamageMultiplier = 1.1f;
-        */
+        //attempt to load the base schematic from mods/hexed/base.msch, defaulting to a built-in one upon failure.
+        Fi baseFile = getConfig().sibling("base.msch");
+        if(baseFile.exists()){
+            try{
+                baseSchematic = Schematics.read(baseFile);
+            }catch(Exception e){
+                Log.err("Failed to load base schematic file.", e);
+            }
+        }
 
-        start = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+        if(baseSchematic == null){
+            baseSchematic = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+        }
 
         Events.run(Trigger.update, () -> {
             if(active()){
@@ -345,10 +350,10 @@ public class HexedMod extends Plugin{
     }
 
     void loadout(Player player, int x, int y){
-        Stile coreTile = start.tiles.find(s -> s.block instanceof CoreBlock);
+        Stile coreTile = baseSchematic.tiles.find(s -> s.block instanceof CoreBlock);
         if(coreTile == null) throw new IllegalArgumentException("Schematic has no core tile. Exiting.");
         int ox = x - coreTile.x, oy = y - coreTile.y;
-        start.tiles.each(st -> {
+        baseSchematic.tiles.each(st -> {
             Tile tile = world.tile(st.x + ox, st.y + oy);
             if(tile == null) return;
 

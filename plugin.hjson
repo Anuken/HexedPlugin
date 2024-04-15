@@ -1,6 +1,6 @@
 name: "Hexed",
 author: "Anuke",
 description: "A battle-royale-like gamemode.",
-version: 0.9
-minGameVersion: 144
+version: 0.10
+minGameVersion: 146
 
