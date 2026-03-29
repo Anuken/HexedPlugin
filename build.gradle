@@ -13,8 +13,8 @@ repositories{
 }
 
 dependencies{
-    compileOnly "com.github.Anuken.Arc:arc-core:v146"
-    compileOnly("com.github.Anuken.Mindustry:core:v146")
+    compileOnly "com.github.Anuken.Arc:arc-core:v156"
+    compileOnly("com.github.Anuken.Mindustry:core:v156")
     annotationProcessor "com.github.Anuken:jabel:93fde537c7"
 }
 
