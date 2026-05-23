@@ -124,7 +124,7 @@ public class HexData{
         public @Nullable Hex location;
         public float progressPercent;
         public boolean lastCaptured;
-        public Timekeeper lastMessage = new Timekeeper(HexedMod.messageTime);
+        public Timekeeper lastMessage = Timekeeper.ofSeconds(HexedMod.messageTime);
     }
 
     public static class HexCaptureEvent{

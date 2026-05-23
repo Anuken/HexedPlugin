@@ -73,7 +73,7 @@ public class HexedMod extends Plugin{
         }
 
         if(baseSchematic == null){
-            baseSchematic = Schematics.readBase64("bXNjaAB4nE2SgY7CIAyGC2yDsXkXH2Tvcq+AkzMmc1tQz/j210JpXDL8hu3/lxYY4FtBs4ZbBLvG1ync4wGO87bvMU2vsCzTEtIlwvCxBW7e1r/43hKYkGY4nFN4XqbfMD+29IbhvmHOtIc1LjCmuIcrfm3X9QH2PofHIyYY5y3FaX3OS3ze4fiRwX7dLa5nDHTPddkCkT3l1DcA/OALihZNq4H6NHnV+HZCVshJXA9VYZC9kfVU+VQGKSsbjVT1lOgp1qO4rGIo9yvnquxH1ORIohap6HVIDbtpaNlDi4cWD80eFJdrNhbJc8W61Jzdqi/3wrRIRii7GYdelvWMZDQs1kNbqtYe9/KuGvDX5zD6d5SML66+5dwRqXgQee5GK3Edxw1ITfb3SJ71OomzUAdjuWsWqZyJavd8Issdb5BqVbaoGCVzJqrddaUGTWSFHPs67m6H5HlaTqbqpFc91Kfn+2eQSp9pr96/Xtx6cevZjeKKDuUOklvvXy9uPGdNZFjZi7IXZS/n8Hyf/wFbjj/q");
+            baseSchematic = Schematics.readBase64("bXNjaAF4nE1S226cMBA9mIuNoZu0/4HUvuYf8tLXqg8OOAkS2MiwiVZRPr3dznjaKoD3eDxzjuey6HBToQpu9aj359GvsGMMhw/HvdvQv329e1u8m+6+vb+jm/w+pnk75hgANIt78MsO9ePnDb4czzHN53V4dcsyLC49efQfz3Dr0hqTnwbSf/GXmFC6NKLbI0UPmwt+QZ/85may4hwO2C2++jSEOHnofXTH4RP6kUSGcB4Xf97x+QP7763N6sNEgeYcluh417HkoxuPmC7QD1nnAvM/D+A7LRT5Q4n8VIDiIgW0gBFfK5GdWD1bbBO14KUIMq8QXsE89nUoOPLEBCVk9tJdivxlTUBb9tXsUaKiREWxSkPQGnW9ZgbrK1iWUJKGEvFSKij5ZaBlSFOLL4dUUgjfqSxZFYqOfkisp8O+gFRVSXTN0Z8ISInBouTD7GuQe9Ggqtm0tLNcaCNuLYVqzlLTS2lXBJYz08QrTwQ9p6vphkzIvNzrhqA2RLn+vv6iqpETNtwHBi1guGmGx1ITWL7AsDJDVjaibES5/TfFgsfS5kYS5Im3It2KdMvS7GslspPIXlROUm6JPITMs8KzkpLlv8gfnoxifw==");
         }
 
         Events.run(Trigger.update, () -> {
