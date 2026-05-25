@@ -1,45 +1,69 @@
 apply plugin: "java"
 
-version '1.0'
-
-sourceCompatibility = JavaVersion.VERSION_16
+version = '1.0'
 
 sourceSets.main.java.srcDirs = ["src"]
 
 repositories{
     mavenCentral()
-    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-    maven{ url 'https://www.jitpack.io' }
-}
 
-dependencies{
-    compileOnly "com.github.Anuken.Arc:arc-core:v156"
-    compileOnly("com.github.Anuken.Mindustry:core:v156")
-    annotationProcessor "com.github.Anuken:jabel:93fde537c7"
-}
+    //Downloads the dependencies JAR file from Mindustry releases; does not use any real repository. Surprisingly, this is the most reliable option.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/dependencies.jar'}
+        metadataSources{ artifact() }
+    }
 
-allprojects{
-    tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '8'])
+    //"Latest" option to depend on BE builds.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/master/[revision].jar'}
+        metadataSources{ artifact() }
+    }
+
+    //Do the same with jabel
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/jabel.jar'}
+        metadataSources{ artifact() }
     }
 }
 
+java{
+    targetCompatibility = 8
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+ext{
+    mindustryVersion = 'v158.1' //the build number that this mod is made for
+    jabelVersion = "93fde537c7"
+}
+
+//java 8 backwards compatibility flag
 allprojects{
-    tasks.withType(JavaCompile){
-        if(JavaVersion.current() != JavaVersion.VERSION_1_8){
+    tasks.withType(JavaCompile).tap{
+        configureEach{
             options.compilerArgs.addAll(['--release', '8'])
         }
     }
 }
 
+dependencies{
+    def useLatest = false //set to "true" to always depend on the newest version of mindustry
+
+    compileOnly useLatest ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
+
+    annotationProcessor "Anuken:jabel:v1.0.0"
+}
+
 jar{
-    archiveFileName = "${project.archivesBaseName}.jar"
+    archiveFileName = "${project.name}.jar"
 
     from{
-        configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
+        configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
     }
 
     from(rootDir){
-        include "plugin.hjson"
+        include "plugin.json"
     }
 }
