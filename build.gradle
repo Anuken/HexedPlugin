@@ -20,40 +20,21 @@ repositories{
         patternLayout{artifact '/[organisation]/[module]/releases/download/master/[revision].jar'}
         metadataSources{ artifact() }
     }
-
-    //Do the same with jabel
-    ivy{
-        url 'https://github.com/'
-        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/jabel.jar'}
-        metadataSources{ artifact() }
-    }
 }
 
 java{
-    targetCompatibility = 8
+    targetCompatibility = JavaVersion.VERSION_17
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
 ext{
     mindustryVersion = 'v158.1' //the build number that this mod is made for
-    jabelVersion = "93fde537c7"
-}
-
-//java 8 backwards compatibility flag
-allprojects{
-    tasks.withType(JavaCompile).tap{
-        configureEach{
-            options.compilerArgs.addAll(['--release', '8'])
-        }
-    }
 }
 
 dependencies{
     def useLatest = false //set to "true" to always depend on the newest version of mindustry
 
     compileOnly useLatest ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
-
-    annotationProcessor "Anuken:jabel:v1.0.0"
 }
 
 jar{
